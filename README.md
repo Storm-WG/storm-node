@@ -1,2 +1,3 @@
-# storm-node
-Extension daemons for LNP Node implementing Storm protocol
+# Storm node
+
+Provides distributed storage & messaging for lightning network.
