@@ -1032,11 +1032,31 @@ dependencies = [
 [[package]]
 name = "microservices"
 version = "0.8.0-rc.2"
-source = "git+https://github.com/Internet2-WG/rust-microservices#1d8b8a143a216a7c9abc52c92d8e49070e66d846"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da3dae2a4fdc8ff79de8aaa1d455681dc04dabd60be67f8a1db612c8230cd0b2"
 dependencies = [
  "amplify",
  "clap",
  "config",
+ "env_logger",
+ "internet2",
+ "lightning_encoding",
+ "log",
+ "nix",
+ "secp256k1",
+ "serde 1.0.137",
+ "serde_with",
+ "strict_encoding",
+ "toml",
+ "zmq2",
+]
+
+[[package]]
+name = "microservices"
+version = "0.8.0-rc.2"
+source = "git+https://github.com/Internet2-WG/rust-microservices#1d8b8a143a216a7c9abc52c92d8e49070e66d846"
+dependencies = [
+ "amplify",
  "env_logger",
  "internet2",
  "lightning_encoding",
@@ -1755,7 +1775,7 @@ dependencies = [
  "commit_verify",
  "internet2",
  "log",
- "microservices",
+ "microservices 0.8.0-rc.2 (git+https://github.com/Internet2-WG/rust-microservices)",
  "rand 0.8.5",
  "serde 1.0.137",
  "serde_with",
@@ -1773,7 +1793,7 @@ dependencies = [
  "colored",
  "internet2",
  "log",
- "microservices",
+ "microservices 0.8.0-rc.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "storm_rpc",
 ]
 
@@ -1794,7 +1814,7 @@ dependencies = [
  "env_logger",
  "internet2",
  "log",
- "microservices",
+ "microservices 0.8.0-rc.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "nix",
  "rpassword",
  "shellexpand",
@@ -1815,7 +1835,7 @@ dependencies = [
  "commit_verify",
  "internet2",
  "log",
- "microservices",
+ "microservices 0.8.0-rc.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.8.5",
  "serde 1.0.137",
  "serde_with",
