@@ -20,7 +20,7 @@ mod opts;
 use clap::Parser;
 use microservices::error::BootstrapError;
 use microservices::shell::LogLevel;
-use storm_node::{Config, LaunchError};
+use storm_node::{Config, LaunchError, stormd};
 
 use crate::opts::Opts;
 
@@ -51,7 +51,7 @@ fn main() -> Result<(), BootstrapError<LaunchError>> {
      */
 
     debug!("Starting runtime ...");
-    storm_node::service::run(config).expect("running stromd runtime");
+    stormd::service::run(config).expect("running stromd runtime");
 
     unreachable!()
 }

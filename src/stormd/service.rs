@@ -17,8 +17,8 @@ use microservices::node::TryService;
 use microservices::rpc::ClientError;
 use storm_rpc::{Reply, Request};
 
-use super::Config;
-use crate::{LaunchError, ServerError};
+use crate::Config;
+use crate::{LaunchError, DaemonError};
 
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
     let runtime = Runtime::init(config)?;
@@ -30,13 +30,13 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
 
 pub struct Runtime {
     /// Original configuration object
-    pub(super) config: Config,
+    pub(crate) config: Config,
 
     /// Stored sessions
-    pub(super) session_rpc: LocalSession,
+    pub(crate) session_rpc: LocalSession,
 
     /// Unmarshaller instance used for parsing RPC request
-    pub(super) unmarshaller: Unmarshaller<Request>,
+    pub(crate) unmarshaller: Unmarshaller<Request>,
 }
 
 impl Runtime {
@@ -89,12 +89,12 @@ impl Runtime {
 }
 
 impl Runtime {
-    pub(super) fn rpc_process(&mut self, raw: Vec<u8>) -> Result<Reply, Reply> {
+    pub(crate) fn rpc_process(&mut self, raw: Vec<u8>) -> Result<Reply, Reply> {
         trace!("Got {} bytes over ZMQ RPC", raw.len());
         let request = (&*self.unmarshaller.unmarshall(raw.as_slice())?).clone();
         debug!("Received ZMQ RPC request #{}: {}", request.get_type(), request);
         match request {
-            Request::Noop => Ok(Reply::Success) as Result<_, ServerError>,
+            Request::Noop => Ok(Reply::Success) as Result<_, DaemonError>,
         }
         .map_err(Reply::from)
     }
