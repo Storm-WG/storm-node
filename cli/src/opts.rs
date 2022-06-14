@@ -13,7 +13,7 @@ use storm_rpc::STORMD_RPC_ENDPOINT;
 
 /// Command-line tool for working with store daemon
 #[derive(Parser, Clone, PartialEq, Eq, Debug)]
-#[clap(name = "store-cli", bin_name = "store-cli", author, version)]
+#[clap(name = "storm-cli", bin_name = "storm-cli", author, version)]
 pub struct Opts {
     /// ZMQ socket for connecting daemon RPC interface.
     ///

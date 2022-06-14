@@ -8,8 +8,8 @@ description = "Storm node"
 version = "0.8.0-alpha.1"
 authors = ["Dr. Maxim Orlovsky <orlovsky@lnp-bp.org>"]
 license = "MIT"
-keywords = ["daemon", "sled", "database"]
-categories = ["database"]
+keywords = ["daemon", "microservice", "lightning-network", "lnp-bp", "storage"]
+categories = ["network-programming"]
 edition = "2021"
 rust-version = "1.56.0"
 readme = "README.md"
@@ -32,8 +32,6 @@ internet2 = { version = "0.8.0-beta.1", features = ["keygen", "zmq"] }
 microservices = { version = "0.8.0-rc.2", default-features = false, features = ["node", "peer"] }
 storm_rpc = { version = "0.8.0-alpha.1", path = "rpc" }
 storedrpc = { version = "0.8.0-alpha.1", git = "https://github.com/Storm-WG/storm-stored" }
-# DB
-sled = "0.34"
 # OS
 zmq = { package = "zmq2", version = "0.5.0" }
 chrono = "0.4"
@@ -46,7 +44,6 @@ configure_me = { version = "0.4", optional = true }
 dotenv = { version = "0.15", optional = true }
 colored = "2.0.0"
 shellexpand = { version = "2", optional = true }
-rpassword = { version = "5.0.1", optional = true }
 
 [build-dependencies]
 amplify = "3.12.0"
@@ -67,7 +64,7 @@ default = ["server"]
 # Required for all apps that can be launched from command-line shell as binaries
 # (i.e. both servers and cli)
 server = ["microservices/server", "dotenv", "clap", "settings", "configure_me",
-          "amplify/parse_arg", "shellexpand", "rpassword"]
+          "amplify/parse_arg", "shellexpand"]
 # Embedded is an app that contains embedded node and that talks to it through
 # integration layer
 embedded = ["microservices/embedded"]

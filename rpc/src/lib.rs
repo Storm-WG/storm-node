@@ -33,6 +33,7 @@ mod request;
 pub use error::FailureCode;
 pub use reply::Reply;
 pub use request::{Request};
+pub use client::Client;
 
 // TODO: Change port
 pub const STORMD_RPC_ENDPOINT: &str = "0.0.0.0:61399";

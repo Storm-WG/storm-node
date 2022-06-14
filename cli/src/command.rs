@@ -10,8 +10,7 @@
 
 use microservices::rpc::ServerError;
 use microservices::shell::Exec;
-use storm_rpc::client::Client;
-use storm_rpc::FailureCode;
+use storm_rpc::{Client, FailureCode};
 
 use crate::{Command, Opts};
 

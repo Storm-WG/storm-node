@@ -4,15 +4,15 @@ description = "Storm node command-line interface"
 version = "0.8.0-alpha.1"
 authors = ["Dr. Maxim Orlovsky <orlovsky@lnp-bp.org>"]
 license = "MIT"
-keywords = ["daemon", "sled", "database"]
-categories = ["database", "command-line-tools"]
+keywords = ["daemon", "microservice", "lightning-network", "lnp-bp", "storage"]
+categories = ["network-programming", "command-line-tools"]
 edition = "2021"
 rust-version = "1.56.0"
 readme = "../README.md"
 
 [[bin]]
 path = "src/main.rs"
-name = "store-cli"
+name = "storm-cli"
 
 [dependencies]
 amplify = "3.12.0"
