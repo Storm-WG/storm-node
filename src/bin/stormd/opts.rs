@@ -29,6 +29,8 @@ pub const STORM_NODE_DATA_DIR: &str = ".";
 
 pub const STORM_NODE_CONFIG: &str = "{data_dir}/stormd.toml";
 
+pub const STORM_NODE_APP_ENDPOINT: &str = "{data_dir}/storm.ipc";
+
 /// Command-line arguments
 #[derive(Parser)]
 #[derive(Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
@@ -76,4 +78,16 @@ pub struct Opts {
         default_value = STORM_NODE_RPC_ENDPOINT
     )]
     pub rpc_endpoint: ServiceAddr,
+
+    /// ZMQ socket name/address for storm node RPC interface.
+    ///
+    /// Internal interface for control PRC protocol communications.
+    #[clap(
+        short,
+        long,
+        env = "STORM_NODE_APP_ENDPOINT",
+        value_hint = ValueHint::FilePath,
+        default_value = STORM_NODE_APP_ENDPOINT
+    )]
+    pub app_endpoint: ServiceAddr,
 }

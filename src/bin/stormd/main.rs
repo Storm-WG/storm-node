@@ -35,6 +35,7 @@ fn main() -> Result<(), BootstrapError<LaunchError>> {
         data_dir: opts.data_dir,
         rpc_endpoint: opts.rpc_endpoint,
         msg_endpoint: opts.msg_endpoint,
+        app_endpoint: opts.app_endpoint,
         verbose: opts.verbose,
     };
     trace!("Daemon configuration: {:?}", config);

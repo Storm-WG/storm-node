@@ -8,9 +8,12 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
+use internet2::presentation;
 use lnp_rpc::ServiceId;
 use microservices::{esb, rpc};
 use storm_rpc::{FailureCode, RpcMsg};
+
+use crate::stormd::ServiceBus;
 
 #[derive(Clone, PartialEq, Eq, Debug, Display, Error, From)]
 #[display(doc_comments)]
@@ -21,12 +24,26 @@ pub enum LaunchError {
 
 impl microservices::error::Error for LaunchError {}
 
-#[derive(Clone, PartialEq, Eq, Debug, Display, Error, From)]
+#[derive(Clone, Debug, Display, Error, From)]
 #[display(doc_comments)]
 pub enum DaemonError {
     #[from]
     #[display(inner)]
     Encoding(strict_encoding::Error),
+
+    /// ESB error: {0}
+    #[from]
+    Esb(esb::Error<ServiceId>),
+
+    /// invalid storm message encoding. Details: {0}
+    #[from]
+    StormEncoding(presentation::Error),
+
+    /// request `{1}` is not supported on {0} message bus
+    RequestNotSupported(ServiceBus, String),
+
+    /// request `{1}` is not supported on {0} message bus for service {2}
+    SourceNotSupported(ServiceBus, String, ServiceId),
 }
 
 impl microservices::error::Error for DaemonError {}
@@ -38,11 +55,29 @@ impl From<DaemonError> for esb::Error<ServiceId> {
 impl From<DaemonError> for RpcMsg {
     fn from(err: DaemonError) -> Self {
         let code = match err {
-            DaemonError::Encoding(_) => FailureCode::Encoding,
+            DaemonError::StormEncoding(_) | DaemonError::Encoding(_) => FailureCode::Encoding,
+            DaemonError::Esb(_) => FailureCode::Esb,
+            DaemonError::RequestNotSupported(_, _) | DaemonError::SourceNotSupported(_, _, _) => {
+                FailureCode::UnexpectedRequest
+            }
         };
         RpcMsg::Failure(rpc::Failure {
             code: code.into(),
             info: err.to_string(),
         })
+    }
+}
+
+impl DaemonError {
+    pub fn wrong_esb_msg(bus: ServiceBus, message: &impl ToString) -> DaemonError {
+        DaemonError::RequestNotSupported(bus, message.to_string())
+    }
+
+    pub fn wrong_esb_msg_source(
+        bus: ServiceBus,
+        message: &impl ToString,
+        source: ServiceId,
+    ) -> DaemonError {
+        DaemonError::SourceNotSupported(bus, message.to_string(), source)
     }
 }

@@ -27,10 +27,10 @@ pub(crate) enum BusMsg {
 impl rpc::Request for BusMsg {}
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Display, From)]
-#[derive(StrictEncode, StrictDecode)]
+#[derive(NetworkEncode, NetworkDecode)]
+#[display(inner)]
 pub enum RpcMsg {
-    #[display("noop")]
-    Noop,
+    RegisterApp(RegisterAppReq),
 
     // Responses to CLI
     // ----------------
@@ -49,4 +49,11 @@ impl From<presentation::Error> for RpcMsg {
             info: format!("{}", err),
         })
     }
+}
+
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Display, Default, From)]
+#[derive(NetworkEncode, NetworkDecode)]
+#[display("register_app({bifrost_code:#06X})")]
+pub struct RegisterAppReq {
+    pub bifrost_code: u16,
 }

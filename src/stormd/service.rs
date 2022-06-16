@@ -8,25 +8,38 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-use internet2::{CreateUnmarshaller, Unmarshaller, ZmqSocketType};
-use lnp_rpc::ServiceId;
+use std::ops::Deref;
+
+use internet2::addr::NodeAddr;
+use internet2::{CreateUnmarshaller, Unmarshall, Unmarshaller, ZmqSocketType};
+use lnp2p::bifrost;
+use lnp2p::bifrost::{BifrostApp, Messages as LnMsg};
+use lnp_rpc::{ClientId, ServiceId};
 use microservices::error::BootstrapError;
 use microservices::esb;
 use microservices::esb::{EndpointList, Error};
 use microservices::node::TryService;
+use storm::p2p::{Messages as AppMsg, StormMesg, STORM_P2P_UNMARSHALLER};
 use storm_rpc::RpcMsg;
 
-use super::{BusMsg, ServiceBus};
+use super::{BusMsg, Responder, ServiceBus};
+use crate::stormd::Endpoints;
 use crate::{Config, DaemonError, LaunchError};
 
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
     let msg_endpoint = config.msg_endpoint.clone();
     let rpc_endpoint = config.rpc_endpoint.clone();
+    let app_endpoint = config.app_endpoint.clone();
     let runtime = Runtime::init(config)?;
 
     debug!("Connecting to service bus {}", msg_endpoint);
     let controller = esb::Controller::with(
         map! {
+            ServiceBus::App => esb::BusConfig::with_addr(
+                app_endpoint,
+                ZmqSocketType::RouterBind,
+                Some(ServiceId::MsgApp(BifrostApp::Storm))
+            ),
             ServiceBus::Msg => esb::BusConfig::with_addr(
                 msg_endpoint,
                 ZmqSocketType::RouterConnect,
@@ -69,11 +82,13 @@ impl Runtime {
     }
 }
 
+impl Responder for Runtime {}
+
 impl esb::Handler<ServiceBus> for Runtime {
     type Request = BusMsg;
     type Error = DaemonError;
 
-    fn identity(&self) -> ServiceId { ServiceId::Storm }
+    fn identity(&self) -> ServiceId { ServiceId::MsgApp(BifrostApp::Storm) }
 
     fn handle(
         &mut self,
@@ -82,14 +97,77 @@ impl esb::Handler<ServiceBus> for Runtime {
         source: ServiceId,
         request: Self::Request,
     ) -> Result<(), Self::Error> {
-        todo!()
+        match (bus_id, request, source) {
+            (ServiceBus::Msg, BusMsg::Birfost(msg), ServiceId::Peer(remote_peer)) => {
+                self.handle_p2p(endpoints, remote_peer, msg)
+            }
+            (ServiceBus::App, BusMsg::App(msg), source) => self.handle_app(endpoints, source, msg),
+            (ServiceBus::Rpc, BusMsg::Rpc(msg), ServiceId::Client(client_id)) => {
+                self.handle_rpc(endpoints, client_id, msg)
+            }
+            (bus, msg, _) => Err(DaemonError::wrong_esb_msg(bus, &msg)),
+        }
     }
 
     fn handle_err(
         &mut self,
-        endpoints: &mut EndpointList<ServiceBus>,
-        error: Error<ServiceId>,
+        _endpoints: &mut EndpointList<ServiceBus>,
+        _error: Error<ServiceId>,
     ) -> Result<(), Self::Error> {
-        todo!()
+        // We do nothing and do not propagate error; it's already being reported
+        // with `error!` macro by the controller. If we propagate error here
+        // this will make whole daemon panic
+        Ok(())
+    }
+}
+
+impl Runtime {
+    fn handle_p2p(
+        &mut self,
+        endpoints: &mut Endpoints,
+        remote_peer: NodeAddr,
+        message: LnMsg,
+    ) -> Result<(), DaemonError> {
+        if let LnMsg::Message(bifrost::Msg {
+            app: BifrostApp::Storm,
+            payload,
+        }) = message
+        {
+            let mesg = STORM_P2P_UNMARSHALLER.unmarshall(&*payload)?;
+            self.send_app(endpoints, mesg.storm_app(), mesg.deref().clone())?;
+        }
+        Ok(())
+    }
+
+    fn handle_rpc(
+        &mut self,
+        endpoints: &mut Endpoints,
+        client_id: ClientId,
+        message: RpcMsg,
+    ) -> Result<(), DaemonError> {
+        match message {
+            wrong_msg => {
+                error!("Request is not supported by the RPC interface");
+                return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg));
+            }
+        }
+
+        Ok(())
+    }
+
+    fn handle_app(
+        &mut self,
+        endpoints: &mut Endpoints,
+        source: ServiceId,
+        message: AppMsg,
+    ) -> Result<(), DaemonError> {
+        match &message {
+            wrong_msg => {
+                error!("Request is not supported by the APP interface");
+                return Err(DaemonError::wrong_esb_msg(ServiceBus::App, wrong_msg));
+            }
+        }
+
+        Ok(())
     }
 }

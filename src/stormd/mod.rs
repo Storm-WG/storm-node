@@ -11,4 +11,4 @@
 pub mod service;
 mod bus;
 
-pub use bus::{BusMsg, ServiceBus};
+pub use bus::{BusMsg, Endpoints, Responder, ServiceBus};

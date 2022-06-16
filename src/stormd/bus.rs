@@ -8,13 +8,23 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-use lnp_rpc::ServiceId;
+use lnp2p::bifrost::BifrostApp;
+use lnp_rpc::{ClientId, ServiceId};
+use microservices::esb::Handler;
 use microservices::{esb, rpc};
+use storm::p2p::Messages as AppMsg;
+use storm::StormApp;
 use storm_rpc::RpcMsg;
+
+pub type Endpoints = esb::EndpointList<ServiceBus>;
 
 /// Service buses used for inter-daemon communication
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Display)]
 pub enum ServiceBus {
+    /// Storm application messaging
+    #[display("APP")]
+    App,
+
     /// RPC interface, from client to node
     #[display("RPC")]
     Rpc,
@@ -43,6 +53,48 @@ pub enum BusMsg {
     #[display(inner)]
     #[from]
     Rpc(RpcMsg),
+
+    /// Storm node <-> application extensions messaging
+    #[api(type = 5)]
+    #[display(inner)]
+    #[from]
+    App(AppMsg),
 }
 
 impl rpc::Request for BusMsg {}
+
+pub trait Responder
+where
+    Self: esb::Handler<ServiceBus>,
+    esb::Error<ServiceId>: From<Self::Error>,
+{
+    #[inline]
+    fn send_rpc(
+        &self,
+        endpoints: &mut Endpoints,
+        client_id: ClientId,
+        message: impl Into<RpcMsg>,
+    ) -> Result<(), esb::Error<ServiceId>> {
+        endpoints.send_to(
+            ServiceBus::Rpc,
+            self.identity(),
+            ServiceId::Client(client_id),
+            BusMsg::Rpc(message.into()),
+        )
+    }
+
+    #[inline]
+    fn send_app(
+        &self,
+        endpoints: &mut Endpoints,
+        app_id: StormApp,
+        message: impl Into<AppMsg>,
+    ) -> Result<(), esb::Error<ServiceId>> {
+        endpoints.send_to(
+            ServiceBus::Rpc,
+            self.identity(),
+            ServiceId::Layer3App(app_id.into()),
+            BusMsg::App(message.into()),
+        )
+    }
+}

@@ -17,6 +17,10 @@ pub enum FailureCode {
 
     /// Encoding
     Encoding = 0x02,
+
+    Esb = 0x03,
+
+    UnexpectedRequest = 0x04,
 }
 
 impl From<u16> for FailureCode {
