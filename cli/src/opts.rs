@@ -9,7 +9,7 @@
 // If not, see <https://opensource.org/licenses/MIT>.
 
 use internet2::addr::ServiceAddr;
-use storm_rpc::STORMD_RPC_ENDPOINT;
+use storm_rpc::STORM_NODE_RPC_ENDPOINT;
 
 /// Command-line tool for working with store daemon
 #[derive(Parser, Clone, PartialEq, Eq, Debug)]
@@ -25,8 +25,8 @@ pub struct Opts {
         short,
         long,
         global = true,
-        default_value = STORMD_RPC_ENDPOINT,
-        env = "STORMD_RPC_ENDPOINT"
+        default_value = STORM_NODE_RPC_ENDPOINT,
+        env = "STORM_NODE_RPC_ENDPOINT"
     )]
     pub rpc_endpoint: ServiceAddr,
 

@@ -12,22 +12,22 @@ use std::path::PathBuf;
 
 use clap::{Parser, ValueHint};
 use internet2::addr::ServiceAddr;
-use storm_rpc::STORMD_RPC_ENDPOINT;
+use storm_rpc::STORM_NODE_RPC_ENDPOINT;
 
 #[cfg(any(target_os = "linux"))]
-pub const STORMD_DATA_DIR: &str = "~/.storm";
+pub const STORM_NODE_DATA_DIR: &str = "~/.storm";
 #[cfg(any(target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
-pub const STORMD_DATA_DIR: &str = "~/.storm";
+pub const STORM_NODE_DATA_DIR: &str = "~/.storm";
 #[cfg(target_os = "macos")]
-pub const STORMD_DATA_DIR: &str = "~/Library/Application Support/Storm Node";
+pub const STORM_NODE_DATA_DIR: &str = "~/Library/Application Support/Storm Node";
 #[cfg(target_os = "windows")]
-pub const STORMD_DATA_DIR: &str = "~\\AppData\\Local\\Storm Node";
+pub const STORM_NODE_DATA_DIR: &str = "~\\AppData\\Local\\Storm Node";
 #[cfg(target_os = "ios")]
-pub const STORMD_DATA_DIR: &str = "~/Documents";
+pub const STORM_NODE_DATA_DIR: &str = "~/Documents";
 #[cfg(target_os = "android")]
-pub const STORMD_DATA_DIR: &str = ".";
+pub const STORM_NODE_DATA_DIR: &str = ".";
 
-pub const STORMD_CONFIG: &str = "{data_dir}/stormd.toml";
+pub const STORM_NODE_CONFIG: &str = "{data_dir}/stormd.toml";
 
 /// Command-line arguments
 #[derive(Parser)]
@@ -48,11 +48,22 @@ pub struct Opts {
         short,
         long,
         global = true,
-        default_value = STORMD_DATA_DIR,
-        env = "STORMD_DATA_DIR",
+        default_value = STORM_NODE_DATA_DIR,
+        env = "STORM_NODE_DATA_DIR",
         value_hint = ValueHint::DirPath
     )]
     pub data_dir: PathBuf,
+
+    /// ZMQ socket for connecting LNP node message bus.
+    ///
+    /// A user needs to specify this socket usually if it likes to distribute daemons
+    /// over different server instances. In this case all daemons within the same node
+    /// must use the same socket address.
+    ///
+    /// Socket can be either TCP address in form of `<ipv4 | ipv6>:<port>` – or a path
+    /// to an IPC file.
+    #[clap(long = "msg", global = true, env = "LNP_NODE_MSG_SOCKET")]
+    pub msg_socket: ServiceAddr,
 
     /// ZMQ socket name/address for storm node RPC interface.
     ///
@@ -60,9 +71,9 @@ pub struct Opts {
     #[clap(
         short = 'x',
         long,
-        env = "STORMD_RPC_ENDPOINT",
+        env = "STORM_NODE_RPC_ENDPOINT",
         value_hint = ValueHint::FilePath,
-        default_value = STORMD_RPC_ENDPOINT
+        default_value = STORM_NODE_RPC_ENDPOINT
     )]
     pub rpc_endpoint: ServiceAddr,
 }

@@ -30,10 +30,10 @@ mod error;
 mod reply;
 mod request;
 
+pub use client::Client;
 pub use error::FailureCode;
 pub use reply::Reply;
-pub use request::{Request};
-pub use client::Client;
+pub use request::Request;
 
 // TODO: Change port
-pub const STORMD_RPC_ENDPOINT: &str = "0.0.0.0:61399";
+pub const STORM_NODE_RPC_ENDPOINT: &str = "0.0.0.0:61399";
