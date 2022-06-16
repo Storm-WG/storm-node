@@ -12,20 +12,43 @@ use internet2::session::LocalSession;
 use internet2::{
     CreateUnmarshaller, SendRecvMessage, TypedEnum, Unmarshall, Unmarshaller, ZmqSocketType,
 };
+use lnp_rpc::ServiceId;
 use microservices::error::BootstrapError;
+use microservices::esb;
+use microservices::esb::{EndpointList, Error};
 use microservices::node::TryService;
 use microservices::rpc::ClientError;
 use storm_rpc::{Reply, Request};
 
-use crate::Config;
-use crate::{LaunchError, DaemonError};
+use super::{BusMsg, ServiceBus};
+use crate::{Config, DaemonError, LaunchError};
 
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
-    let runtime = Runtime::init(config)?;
+    // TODO: Use global context coming from LNP Node (or provide context with
+    //       rust-microservices)
+    let ctx = zmq::Context::new();
 
-    runtime.run_or_panic("stormd");
+    let msg_endpoint = config.msg_endpoint.clone();
+    let runtime = Runtime::init(config, &ctx)?;
 
-    Ok(())
+    debug!("Connecting to LNP Node MSG service bus {}", msg_endpoint);
+    let controller = esb::Controller::with(
+        map! {
+            ServiceBus::Msg => esb::BusConfig::with_addr(
+                msg_endpoint,
+                None
+            )
+        },
+        runtime,
+        ZmqSocketType::RouterConnect,
+        ctx,
+    )
+    .map_err(|_| LaunchError::NoLnpdConnection)?;
+
+    // TODO: This misses RPC connection; we need to mux it in
+    controller.run_or_panic("stormd");
+
+    unreachable!()
 }
 
 pub struct Runtime {
@@ -40,12 +63,11 @@ pub struct Runtime {
 }
 
 impl Runtime {
-    pub fn init(config: Config) -> Result<Self, BootstrapError<LaunchError>> {
+    pub fn init(config: Config, ctx: &zmq::Context) -> Result<Self, BootstrapError<LaunchError>> {
         // debug!("Initializing storage provider {:?}", config.storage_conf());
         // let storage = storage::FileDriver::with(config.storage_conf())?;
 
         debug!("Opening RPC API socket {}", config.rpc_endpoint);
-        let ctx = zmq::Context::new();
         let session_rpc =
             LocalSession::connect(ZmqSocketType::Rep, &config.rpc_endpoint, None, None, &ctx)?;
 
@@ -97,5 +119,30 @@ impl Runtime {
             Request::Noop => Ok(Reply::Success) as Result<_, DaemonError>,
         }
         .map_err(Reply::from)
+    }
+}
+
+impl esb::Handler<ServiceBus> for Runtime {
+    type Request = BusMsg;
+    type Error = DaemonError;
+
+    fn identity(&self) -> ServiceId { ServiceId::Storm }
+
+    fn handle(
+        &mut self,
+        endpoints: &mut EndpointList<ServiceBus>,
+        bus_id: ServiceBus,
+        source: ServiceId,
+        request: Self::Request,
+    ) -> Result<(), Self::Error> {
+        todo!()
+    }
+
+    fn handle_err(
+        &mut self,
+        endpoints: &mut EndpointList<ServiceBus>,
+        error: Error<ServiceId>,
+    ) -> Result<(), Self::Error> {
+        todo!()
     }
 }

@@ -9,3 +9,6 @@
 // If not, see <https://opensource.org/licenses/MIT>.
 
 pub mod service;
+mod msg_bus;
+
+pub use msg_bus::{BusMsg, ServiceBus};
