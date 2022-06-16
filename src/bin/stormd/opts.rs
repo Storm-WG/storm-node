@@ -62,8 +62,8 @@ pub struct Opts {
     ///
     /// Socket can be either TCP address in form of `<ipv4 | ipv6>:<port>` – or a path
     /// to an IPC file.
-    #[clap(long = "msg", global = true, env = "LNP_NODE_MSG_SOCKET")]
-    pub msg_socket: ServiceAddr,
+    #[clap(short, long, env = "LNP_NODE_MSG_SOCKET", value_hint = ValueHint::FilePath)]
+    pub msg_endpoint: ServiceAddr,
 
     /// ZMQ socket name/address for storm node RPC interface.
     ///

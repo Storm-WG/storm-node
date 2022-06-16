@@ -19,8 +19,11 @@ use internet2::addr::ServiceAddr;
 #[derive(Clone, PartialEq, Eq, Debug, Display)]
 #[display(Debug)]
 pub struct Config {
-    /// ZMQ socket for RPC API
+    /// ZMQ socket for RPC API.
     pub rpc_endpoint: ServiceAddr,
+
+    /// ZMQ socket for LNP node MSG service bus.
+    pub msg_endpoint: ServiceAddr,
 
     /// Data location
     pub data_dir: PathBuf,

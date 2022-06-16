@@ -20,7 +20,7 @@ mod opts;
 use clap::Parser;
 use microservices::error::BootstrapError;
 use microservices::shell::LogLevel;
-use storm_node::{Config, LaunchError, stormd};
+use storm_node::{stormd, Config, LaunchError};
 
 use crate::opts::Opts;
 
@@ -34,6 +34,7 @@ fn main() -> Result<(), BootstrapError<LaunchError>> {
     let mut config = Config {
         data_dir: opts.data_dir,
         rpc_endpoint: opts.rpc_endpoint,
+        msg_endpoint: opts.msg_endpoint,
         verbose: opts.verbose,
     };
     trace!("Daemon configuration: {:?}", config);

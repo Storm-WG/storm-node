@@ -23,6 +23,8 @@ Register-ArgumentCompleter -Native -CommandName 'stormd' -ScriptBlock {
         'stormd' {
             [CompletionResult]::new('-d', 'd', [CompletionResultType]::ParameterName, 'Data directory path')
             [CompletionResult]::new('--data-dir', 'data-dir', [CompletionResultType]::ParameterName, 'Data directory path')
+            [CompletionResult]::new('-m', 'm', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting LNP node message bus')
+            [CompletionResult]::new('--msg-endpoint', 'msg-endpoint', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting LNP node message bus')
             [CompletionResult]::new('-x', 'x', [CompletionResultType]::ParameterName, 'ZMQ socket name/address for storm node RPC interface')
             [CompletionResult]::new('--rpc-endpoint', 'rpc-endpoint', [CompletionResultType]::ParameterName, 'ZMQ socket name/address for storm node RPC interface')
             [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Print help information')

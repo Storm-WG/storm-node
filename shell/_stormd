@@ -17,6 +17,8 @@ _stormd() {
     _arguments "${_arguments_options[@]}" \
 '-d+[Data directory path]:DATA_DIR:_files -/' \
 '--data-dir=[Data directory path]:DATA_DIR:_files -/' \
+'-m+[ZMQ socket for connecting LNP node message bus]:MSG_ENDPOINT:_files' \
+'--msg-endpoint=[ZMQ socket for connecting LNP node message bus]:MSG_ENDPOINT:_files' \
 '-x+[ZMQ socket name/address for storm node RPC interface]:RPC_ENDPOINT:_files' \
 '--rpc-endpoint=[ZMQ socket name/address for storm node RPC interface]:RPC_ENDPOINT:_files' \
 '-h[Print help information]' \
