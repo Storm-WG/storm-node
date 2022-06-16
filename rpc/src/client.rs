@@ -16,7 +16,8 @@ use internet2::{
 use microservices::rpc::ServerError;
 use microservices::ZMQ_CONTEXT;
 
-use crate::{FailureCode, Reply, Request};
+use crate::messages::BusMsg;
+use crate::{FailureCode, RpcMsg};
 
 /// Final configuration resulting from data contained in config file environment
 /// variables and command-line options. For security reasons node key is kept
@@ -35,7 +36,7 @@ pub struct Client {
     config: Config,
     // TODO: Replace with RpcSession once its implementation is completed
     session_rpc: LocalSession,
-    unmarshaller: Unmarshaller<Reply>,
+    unmarshaller: Unmarshaller<BusMsg>,
 }
 
 impl Client {
@@ -52,13 +53,13 @@ impl Client {
         Ok(Self {
             config,
             session_rpc,
-            unmarshaller: Reply::create_unmarshaller(),
+            unmarshaller: BusMsg::create_unmarshaller(),
         })
     }
 
-    pub fn request(&mut self, request: Request) -> Result<Reply, ServerError<FailureCode>> {
+    pub fn request(&mut self, request: RpcMsg) -> Result<RpcMsg, ServerError<FailureCode>> {
         trace!("Sending request to the server: {:?}", request);
-        let data = request.serialize();
+        let data = BusMsg::from(request).serialize();
         trace!("Raw request data ({} bytes): {:02X?}", data.len(), data);
         self.session_rpc.send_raw_message(&data)?;
         trace!("Awaiting reply");
@@ -66,6 +67,8 @@ impl Client {
         trace!("Got reply ({} bytes), parsing: {:02X?}", raw.len(), raw);
         let reply = self.unmarshaller.unmarshall(raw.as_slice())?;
         trace!("Reply: {:?}", reply);
-        Ok((&*reply).clone())
+        match &*reply {
+            BusMsg::Rpc(rpc) => Ok(rpc.clone()),
+        }
     }
 }

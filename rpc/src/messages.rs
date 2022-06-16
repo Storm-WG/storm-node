@@ -11,30 +11,40 @@
 use internet2::presentation;
 use microservices::rpc;
 
-use crate::{FailureCode};
+use crate::FailureCode;
 
-#[derive(Clone, Eq, PartialEq, Hash, Debug, Display, From)]
-#[derive(Api)]
+/// We need this wrapper type to be compatible with Storm Node having multiple message buses
+#[derive(Clone, Debug, Display, From, Api)]
 #[api(encoding = "strict")]
 #[non_exhaustive]
-pub enum Reply {
+pub(crate) enum BusMsg {
+    #[api(type = 4)]
+    #[display(inner)]
+    #[from]
+    Rpc(RpcMsg),
+}
+
+impl rpc::Request for BusMsg {}
+
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Display, From)]
+#[derive(StrictEncode, StrictDecode)]
+pub enum RpcMsg {
+    #[display("noop")]
+    Noop,
+
     // Responses to CLI
     // ----------------
-    #[api(type = 0x0001)]
     #[display("success({0})")]
     Success,
 
-    #[api(type = 0x0000)]
     #[display("failure({0:#})")]
     #[from]
     Failure(rpc::Failure<FailureCode>),
 }
 
-impl rpc::Reply for Reply {}
-
-impl From<presentation::Error> for Reply {
+impl From<presentation::Error> for RpcMsg {
     fn from(err: presentation::Error) -> Self {
-        Reply::Failure(rpc::Failure {
+        RpcMsg::Failure(rpc::Failure {
             code: rpc::FailureCode::Presentation,
             info: format!("{}", err),
         })

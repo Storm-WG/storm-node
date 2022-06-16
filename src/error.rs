@@ -10,7 +10,7 @@
 
 use lnp_rpc::ServiceId;
 use microservices::{esb, rpc};
-use storm_rpc::{FailureCode, Reply};
+use storm_rpc::{FailureCode, RpcMsg};
 
 #[derive(Clone, PartialEq, Eq, Debug, Display, Error, From)]
 #[display(doc_comments)]
@@ -35,12 +35,12 @@ impl From<DaemonError> for esb::Error<ServiceId> {
     fn from(err: DaemonError) -> Self { esb::Error::ServiceError(err.to_string()) }
 }
 
-impl From<DaemonError> for Reply {
+impl From<DaemonError> for RpcMsg {
     fn from(err: DaemonError) -> Self {
         let code = match err {
             DaemonError::Encoding(_) => FailureCode::Encoding,
         };
-        Reply::Failure(rpc::Failure {
+        RpcMsg::Failure(rpc::Failure {
             code: code.into(),
             info: err.to_string(),
         })

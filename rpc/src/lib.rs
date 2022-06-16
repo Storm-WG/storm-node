@@ -27,13 +27,11 @@ extern crate serde_crate as serde;
 
 pub mod client;
 mod error;
-mod reply;
-mod request;
+mod messages;
 
 pub use client::Client;
 pub use error::FailureCode;
-pub use reply::Reply;
-pub use request::Request;
+pub use messages::RpcMsg;
 
 // TODO: Change port
 pub const STORM_NODE_RPC_ENDPOINT: &str = "0.0.0.0:61399";
