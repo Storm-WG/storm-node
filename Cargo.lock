@@ -882,9 +882,9 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.11.2"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
+checksum = "db0d4cf898abf0081f964436dc980e96670a0f36863e4b83aaacdb65c9d7ccc3"
 
 [[package]]
 name = "heck"
@@ -934,9 +934,9 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 
 [[package]]
 name = "indexmap"
-version = "1.8.2"
+version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6012d540c5baa3589337a98ce73408de9b5a25ec9fc2c6fd6be8f0d39e0ca5a"
+checksum = "6c6392766afd7964e2531940894cffe4bd8d7d17dbc3c1c4857040fd4b33bdb3"
 dependencies = [
  "autocfg 1.1.0",
  "hashbrown",
@@ -2071,7 +2071,7 @@ dependencies = [
 [[package]]
 name = "storm-core"
 version = "0.1.0"
-source = "git+https://github.com/Storm-WG/storm-core#86e8e81312a7bf53a2bb94005d299a43cac43395"
+source = "git+https://github.com/Storm-WG/storm-core#b49caa4fd3d6c476829e3b9c9e60a19fb5a6ae70"
 dependencies = [
  "amplify",
  "bitcoin_hashes",
@@ -2090,9 +2090,11 @@ dependencies = [
  "internet2",
  "log",
  "microservices",
+ "once_cell",
  "serde 1.0.137",
  "serde_with",
  "serde_yaml",
+ "storm-core 0.1.0 (git+https://github.com/Storm-WG/storm-core)",
  "storm_rpc",
  "strict_encoding",
  "zmq2",

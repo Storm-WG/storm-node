@@ -24,6 +24,11 @@ extern crate serde_crate as serde;
 
 mod messages;
 
+use internet2::{CreateUnmarshaller, Unmarshaller};
 pub use messages::AppMsg;
+use once_cell::sync::Lazy;
 
 pub const STORM_NODE_APP_ENDPOINT: &str = "{data_dir}/storm.ipc";
+
+pub static STORM_APP_UNMARSHALLER: Lazy<Unmarshaller<AppMsg>> =
+    Lazy::new(|| AppMsg::create_unmarshaller());

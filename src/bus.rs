@@ -10,8 +10,8 @@
 
 use lnp_rpc::{ClientId, ServiceId};
 use microservices::{esb, rpc};
-use storm::p2p::Messages as AppMsg;
 use storm::StormApp;
+use storm_app::AppMsg;
 use storm_rpc::RpcMsg;
 
 pub(crate) type Endpoints = esb::EndpointList<ServiceBus>;

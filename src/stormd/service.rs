@@ -19,12 +19,12 @@ use microservices::error::BootstrapError;
 use microservices::esb;
 use microservices::esb::{EndpointList, Error};
 use microservices::node::TryService;
-use storm::p2p::{Messages as AppMsg, StormMesg, STORM_P2P_UNMARSHALLER};
+use storm::p2p::{StormMesg, STORM_P2P_UNMARSHALLER};
+use storm_app::AppMsg;
 use storm_rpc::RpcMsg;
 
 use crate::bus::{BusMsg, Endpoints, Responder, ServiceBus};
-use crate::error::DaemonError;
-use crate::{Config, LaunchError};
+use crate::{Config, DaemonError, LaunchError};
 
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
     let msg_endpoint = config.msg_endpoint.clone();
