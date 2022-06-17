@@ -13,7 +13,7 @@ use lnp_rpc::ServiceId;
 use microservices::{esb, rpc};
 use storm_rpc::{FailureCode, RpcMsg};
 
-use crate::stormd::ServiceBus;
+use crate::bus::ServiceBus;
 
 #[derive(Clone, PartialEq, Eq, Debug, Display, Error, From)]
 #[display(doc_comments)]

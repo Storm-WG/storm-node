@@ -20,6 +20,7 @@ extern crate log;
 mod config;
 mod error;
 pub mod stormd;
+pub mod bus;
 
 pub use config::Config;
-pub use error::{LaunchError, DaemonError};
+pub use error::{DaemonError, LaunchError};

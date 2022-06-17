@@ -22,8 +22,7 @@ use microservices::node::TryService;
 use storm::p2p::{Messages as AppMsg, StormMesg, STORM_P2P_UNMARSHALLER};
 use storm_rpc::RpcMsg;
 
-use super::{BusMsg, Responder, ServiceBus};
-use crate::stormd::Endpoints;
+use crate::bus::{BusMsg, Endpoints, Responder, ServiceBus};
 use crate::{Config, DaemonError, LaunchError};
 
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
