@@ -2116,18 +2116,13 @@ name = "storm_rpc"
 version = "0.8.0-alpha.1"
 dependencies = [
  "amplify",
- "bitcoin_hashes",
- "colored",
- "commit_verify",
  "internet2",
  "log",
  "microservices",
- "rand 0.8.5",
  "serde 1.0.137",
  "serde_with",
  "serde_yaml",
  "strict_encoding",
- "zmq2",
 ]
 
 [[package]]
