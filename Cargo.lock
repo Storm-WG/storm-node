@@ -1287,7 +1287,7 @@ dependencies = [
  "internet2",
  "lightning_encoding",
  "log",
- "nix",
+ "nix 0.19.1",
  "once_cell",
  "secp256k1 0.22.1",
  "serde 1.0.137",
@@ -1316,6 +1316,18 @@ dependencies = [
  "cc",
  "cfg-if",
  "libc",
+]
+
+[[package]]
+name = "nix"
+version = "0.24.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f17df307904acd05aa8e32e97bb20f2a0df1728bbc2d771ae8f9a90463441e9"
+dependencies = [
+ "bitflags",
+ "cfg-if",
+ "libc",
+ "memoffset",
 ]
 
 [[package]]
@@ -2120,7 +2132,7 @@ dependencies = [
  "lnp_rpc",
  "log",
  "microservices",
- "nix",
+ "nix 0.24.1",
  "shellexpand",
  "store_rpc",
  "storm-core 0.1.0 (git+https://github.com/Storm-WG/storm-core)",
