@@ -26,7 +26,7 @@ impl microservices::error::Error for LaunchError {}
 
 #[derive(Clone, Debug, Display, Error, From)]
 #[display(doc_comments)]
-pub enum DaemonError {
+pub(crate) enum DaemonError {
     #[from]
     #[display(inner)]
     Encoding(strict_encoding::Error),
@@ -69,11 +69,11 @@ impl From<DaemonError> for RpcMsg {
 }
 
 impl DaemonError {
-    pub fn wrong_esb_msg(bus: ServiceBus, message: &impl ToString) -> DaemonError {
+    pub(crate) fn wrong_esb_msg(bus: ServiceBus, message: &impl ToString) -> DaemonError {
         DaemonError::RequestNotSupported(bus, message.to_string())
     }
 
-    pub fn wrong_esb_msg_source(
+    pub(crate) fn wrong_esb_msg_source(
         bus: ServiceBus,
         message: &impl ToString,
         source: ServiceId,

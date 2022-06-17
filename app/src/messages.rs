@@ -10,26 +10,28 @@
 
 use internet2::presentation;
 use microservices::rpc;
-
-use crate::FailureCode;
+use storm_rpc::FailureCode;
 
 /// We need this wrapper type to be compatible with Storm Node having multiple message buses
 #[derive(Clone, Debug, Display, From, Api)]
 #[api(encoding = "strict")]
 #[non_exhaustive]
 pub(crate) enum BusMsg {
-    #[api(type = 4)]
+    #[api(type = 5)]
     #[display(inner)]
     #[from]
-    Rpc(RpcMsg),
+    App(AppMsg),
 }
 
 impl rpc::Request for BusMsg {}
 
-#[derive(Clone, Eq, PartialEq, Hash, Debug, Display, From)]
+#[derive(Clone, Debug, Display, From)]
 #[derive(NetworkEncode, NetworkDecode)]
 #[display(inner)]
-pub enum RpcMsg {
+#[non_exhaustive]
+pub enum AppMsg {
+    RegisterApp(RegisterAppReq),
+
     // Responses to CLI
     // ----------------
     #[display("success({0})")]
@@ -40,11 +42,18 @@ pub enum RpcMsg {
     Failure(rpc::Failure<FailureCode>),
 }
 
-impl From<presentation::Error> for RpcMsg {
+impl From<presentation::Error> for AppMsg {
     fn from(err: presentation::Error) -> Self {
-        RpcMsg::Failure(rpc::Failure {
+        AppMsg::Failure(rpc::Failure {
             code: rpc::FailureCode::Presentation,
             info: format!("{}", err),
         })
     }
+}
+
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Display, Default)]
+#[derive(NetworkEncode, NetworkDecode)]
+#[display("register_app({bifrost_code:#06X})")]
+pub struct RegisterAppReq {
+    pub bifrost_code: u16,
 }

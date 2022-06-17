@@ -2083,6 +2083,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "storm_app"
+version = "0.8.0-alpha.1"
+dependencies = [
+ "amplify",
+ "internet2",
+ "log",
+ "microservices",
+ "serde 1.0.137",
+ "serde_with",
+ "serde_yaml",
+ "storm_rpc",
+ "strict_encoding",
+ "zmq2",
+]
+
+[[package]]
 name = "storm_node"
 version = "0.8.0-alpha.1"
 dependencies = [
@@ -2106,6 +2122,7 @@ dependencies = [
  "shellexpand",
  "store_rpc",
  "storm-core 0.1.0 (git+https://github.com/Storm-WG/storm-core)",
+ "storm_app",
  "storm_rpc",
  "strict_encoding",
  "zmq2",

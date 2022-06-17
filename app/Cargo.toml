@@ -1,0 +1,34 @@
+[package]
+name = "storm_app"
+description = "Storm node application integration API"
+version = "0.8.0-alpha.1"
+authors = ["Dr. Maxim Orlovsky <orlovsky@lnp-bp.org>"]
+license = "MIT"
+keywords = ["daemon", "microservice", "lightning-network", "lnp-bp", "storage"]
+categories = ["network-programming"]
+edition = "2021"
+rust-version = "1.56.0"
+readme = "../README.md"
+
+[lib]
+name = "storm_app"
+
+[dependencies]
+amplify = "3.12.0"
+strict_encoding = "1.8.1"
+internet2 = "0.8.0-beta.1"
+microservices = { version = "0.8.0-rc.4", default-features = false, features = ["client"] }
+storm_rpc = { version = "0.8.0-alpha.1", path = "../rpc" }
+serde_crate = { package = "serde", version = "1", features = ["derive"], optional = true }
+serde_with = { version = "1.8", optional = true }
+serde_yaml = { version = "0.8.23", optional = true }
+zmq = { package = "zmq2", version = "0.5.0" }
+log = "0.4.14"
+
+[features]
+default = ["serde"]
+all = ["serde"]
+serde = [
+    "serde_crate", "serde_with", "serde_yaml",
+    "amplify/serde", "internet2/serde", "microservices/serde",
+]

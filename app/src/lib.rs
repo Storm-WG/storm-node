@@ -8,6 +8,8 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
+#![recursion_limit = "256"]
+
 #[macro_use]
 extern crate amplify;
 #[macro_use]
@@ -17,11 +19,11 @@ extern crate internet2;
 #[macro_use]
 extern crate log;
 
-mod config;
-mod error;
-pub mod stormd;
-pub mod bus;
+#[cfg(feature = "serde")]
+extern crate serde_crate as serde;
 
-pub use config::Config;
-pub(crate) use error::DaemonError;
-pub use error::LaunchError;
+mod messages;
+
+pub use messages::AppMsg;
+
+pub const STORM_NODE_APP_ENDPOINT: &str = "{data_dir}/storm.ipc";

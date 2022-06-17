@@ -12,6 +12,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, ValueHint};
 use internet2::addr::ServiceAddr;
+use storm_app::STORM_NODE_APP_ENDPOINT;
 use storm_rpc::STORM_NODE_RPC_ENDPOINT;
 
 #[cfg(any(target_os = "linux"))]
@@ -28,8 +29,6 @@ pub const STORM_NODE_DATA_DIR: &str = "~/Documents";
 pub const STORM_NODE_DATA_DIR: &str = ".";
 
 pub const STORM_NODE_CONFIG: &str = "{data_dir}/stormd.toml";
-
-pub const STORM_NODE_APP_ENDPOINT: &str = "{data_dir}/storm.ipc";
 
 /// Command-line arguments
 #[derive(Parser)]

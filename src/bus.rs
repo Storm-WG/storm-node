@@ -8,19 +8,17 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-use lnp2p::bifrost::BifrostApp;
 use lnp_rpc::{ClientId, ServiceId};
-use microservices::esb::Handler;
 use microservices::{esb, rpc};
 use storm::p2p::Messages as AppMsg;
 use storm::StormApp;
 use storm_rpc::RpcMsg;
 
-pub type Endpoints = esb::EndpointList<ServiceBus>;
+pub(crate) type Endpoints = esb::EndpointList<ServiceBus>;
 
 /// Service buses used for inter-daemon communication
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Display)]
-pub enum ServiceBus {
+pub(crate) enum ServiceBus {
     /// Storm application messaging
     #[display("APP")]
     App,
@@ -42,7 +40,7 @@ impl esb::BusId for ServiceBus {
 #[derive(Clone, Debug, Display, From, Api)]
 #[api(encoding = "strict")]
 #[display(inner)]
-pub enum BusMsg {
+pub(crate) enum BusMsg {
     /// Bifrost P2P messages
     #[api(type = 3)]
     #[from]
@@ -63,7 +61,7 @@ pub enum BusMsg {
 
 impl rpc::Request for BusMsg {}
 
-pub trait Responder
+pub(crate) trait Responder
 where
     Self: esb::Handler<ServiceBus>,
     esb::Error<ServiceId>: From<Self::Error>,
