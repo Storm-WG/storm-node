@@ -1137,7 +1137,7 @@ checksum = "7fb9b38af92608140b86b693604b9ffcc5824240a484d1ecd4795bacb2fe88f3"
 [[package]]
 name = "lnp-core"
 version = "0.8.0"
-source = "git+https://github.com/LNP-WG/lnp-core#85fc6546f34dc05a41e3bc93baaf62e6729f19ce"
+source = "git+https://github.com/LNP-WG/lnp-core#3d32ff45164c2f9942056aa0f3ccdf2969ecbafc"
 dependencies = [
  "amplify",
  "bitcoin 0.28.1",
@@ -1155,7 +1155,7 @@ dependencies = [
 [[package]]
 name = "lnp2p"
 version = "0.8.0"
-source = "git+https://github.com/LNP-WG/lnp-core#85fc6546f34dc05a41e3bc93baaf62e6729f19ce"
+source = "git+https://github.com/LNP-WG/lnp-core#3d32ff45164c2f9942056aa0f3ccdf2969ecbafc"
 dependencies = [
  "amplify",
  "bitcoin 0.28.1",
@@ -2083,7 +2083,7 @@ dependencies = [
 [[package]]
 name = "storm-core"
 version = "0.1.0"
-source = "git+https://github.com/Storm-WG/storm-core#b49caa4fd3d6c476829e3b9c9e60a19fb5a6ae70"
+source = "git+https://github.com/Storm-WG/storm-core#363386f7afd4620af222543ce03d7e877247f444"
 dependencies = [
  "amplify",
  "bitcoin_hashes",
@@ -2206,9 +2206,9 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "syn"
-version = "1.0.96"
+version = "1.0.97"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0748dd251e24453cb8717f0354206b91557e4ec8703673a4b30208f2abaf1ebf"
+checksum = "233d6785e2e6b8442eb26736eaef8c8f0ce0e575c1457d06c3f2812f9cb4c8a0"
 dependencies = [
  "proc-macro2",
  "quote",

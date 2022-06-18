@@ -86,7 +86,7 @@ impl From<storm::p2p::Messages> for AppMsg {
                 with_container,
             }),
             p2p::Messages::Push(p2p::ChunkPush { chunk, .. }) => AppMsg::Push(chunk),
-            p2p::Messages::Chunk(p2p::ChunkPoll { chunk_id, .. }) => AppMsg::Chunk(chunk_id),
+            p2p::Messages::Chunk(p2p::ChunkPull { chunk_id, .. }) => AppMsg::Chunk(chunk_id),
             p2p::Messages::Decline(p2p::DeclineResp { mesg_id, .. }) => AppMsg::Decline(mesg_id),
             _ => unreachable!("Storm node uses outdated application API"),
         }
