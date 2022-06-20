@@ -2139,7 +2139,6 @@ dependencies = [
  "storm_app",
  "storm_rpc",
  "strict_encoding",
- "zmq2",
 ]
 
 [[package]]
