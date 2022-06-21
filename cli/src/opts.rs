@@ -20,7 +20,7 @@ pub struct Opts {
     /// Socket can be either TCP address in form of `<ipv4 | ipv6>:<port>` – or a path
     /// to an IPC file.
     ///
-    /// Defaults to `127.0.0.1:62962`.
+    /// Defaults to `127.0.0.1:64964`.
     #[clap(
         short,
         long,
@@ -28,7 +28,7 @@ pub struct Opts {
         default_value = STORM_NODE_RPC_ENDPOINT,
         env = "STORM_NODE_RPC_ENDPOINT"
     )]
-    pub rpc_endpoint: ServiceAddr,
+    pub connect: ServiceAddr,
 
     /// Set verbosity level.
     ///

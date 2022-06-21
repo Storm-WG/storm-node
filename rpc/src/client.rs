@@ -19,19 +19,6 @@ use microservices::ZMQ_CONTEXT;
 use crate::messages::BusMsg;
 use crate::{FailureCode, RpcMsg};
 
-/// Final configuration resulting from data contained in config file environment
-/// variables and command-line options. For security reasons node key is kept
-/// separately.
-#[derive(Clone, PartialEq, Eq, Debug, Display)]
-#[display(Debug)]
-pub struct Config {
-    /// ZMQ socket for RPC API
-    pub rpc_endpoint: ServiceAddr,
-
-    /// Verbosity level
-    pub verbose: u8,
-}
-
 pub struct Client {
     // TODO: Replace with RpcSession once its implementation is completed
     session_rpc: LocalSession,
@@ -39,16 +26,12 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn with(config: Config) -> Result<Self, ServerError<FailureCode>> {
+    pub fn with(connect: &ServiceAddr) -> Result<Self, ServerError<FailureCode>> {
+        // TODO: Connect to ESB bus instead
         debug!("Initializing runtime");
         trace!("Connecting to storm daemon at {}", config.rpc_endpoint);
-        let session_rpc = LocalSession::connect(
-            ZmqSocketType::Req,
-            &config.rpc_endpoint,
-            None,
-            None,
-            &ZMQ_CONTEXT,
-        )?;
+        let session_rpc =
+            LocalSession::connect(ZmqSocketType::RouterConnect, connect, None, None, &ZMQ_CONTEXT)?;
         Ok(Self {
             session_rpc,
             unmarshaller: BusMsg::create_unmarshaller(),
