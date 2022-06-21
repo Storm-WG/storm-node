@@ -11,7 +11,7 @@
 use std::ops::Deref;
 
 use internet2::addr::NodeAddr;
-use internet2::{Unmarshall, Unmarshaller, ZmqSocketType};
+use internet2::{Unmarshall, ZmqSocketType};
 use lnp2p::bifrost;
 use lnp2p::bifrost::{BifrostApp, Messages as LnMsg};
 use lnp_rpc::{ClientId, ServiceId};

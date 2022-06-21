@@ -23,8 +23,8 @@ mod command;
 mod opts;
 
 use clap::Parser;
-use colored::Colorize;
 use internet2::addr::ServiceAddr;
+use microservices::cli::LogStyle;
 use microservices::shell::{Exec, LogLevel};
 use storm_rpc::client::Client;
 
@@ -33,7 +33,7 @@ pub use crate::opts::{Command, Opts};
 fn main() {
     println!("storm-cli: command-line tool for working with Storm node");
 
-    let opts = Opts::parse();
+    let mut opts = Opts::parse();
     LogLevel::from_verbosity_flag_count(opts.verbose).apply();
     trace!("Command-line arguments: {:#?}", &opts);
 
@@ -46,5 +46,6 @@ fn main() {
     let mut client = Client::with(connect).expect("Error initializing client");
 
     trace!("Executing command: {}", opts.command);
-    opts.command.exec(&mut client).unwrap_or_else(|err| eprintln!("{}", err));
+    opts.exec(&mut client)
+        .unwrap_or_else(|err| eprintln!("{} {}\n", "Error:".err(), err.err_details()));
 }

@@ -22,8 +22,8 @@ pub struct Opts {
     ///
     /// Defaults to `127.0.0.1:64964`.
     #[clap(
-        short,
-        long,
+        short = 'R',
+        long = "rpc",
         global = true,
         default_value = STORM_NODE_RPC_ENDPOINT,
         env = "STORM_NODE_RPC_ENDPOINT"

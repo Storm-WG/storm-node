@@ -29,7 +29,7 @@ impl Client {
     pub fn with(connect: &ServiceAddr) -> Result<Self, ServerError<FailureCode>> {
         // TODO: Connect to ESB bus instead
         debug!("Initializing runtime");
-        trace!("Connecting to storm daemon at {}", config.rpc_endpoint);
+        trace!("Connecting to storm daemon at {}", connect);
         let session_rpc =
             LocalSession::connect(ZmqSocketType::RouterConnect, connect, None, None, &ZMQ_CONTEXT)?;
         Ok(Self {

@@ -2097,6 +2097,7 @@ dependencies = [
  "internet2",
  "log",
  "microservices 0.8.0-rc.8 (git+https://github.com/Internet2-WG/rust-microservices)",
+ "shellexpand",
  "storm_rpc",
 ]
 
