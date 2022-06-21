@@ -19,7 +19,7 @@ _stormd() {
 
     case "${cmd}" in
         stormd)
-            opts="-h -V -v -d -m -x -e --help --version --verbose --data-dir --msg-endpoint --rpc-endpoint --ext-endpoint"
+            opts="-h -V -v -d -c -M -X -R -E -T --help --version --verbose --data-dir --config --msg --ctl --rpc-endpoint --ext-endpoint --threaded"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
@@ -33,11 +33,27 @@ _stormd() {
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                --msg-endpoint)
+                --config)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                -m)
+                -c)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --msg)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -M)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --ctl)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -X)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
@@ -45,7 +61,7 @@ _stormd() {
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                -x)
+                -R)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
@@ -53,7 +69,7 @@ _stormd() {
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                -e)
+                -E)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;

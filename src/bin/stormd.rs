@@ -24,21 +24,24 @@ use storm_node::{stormd, Config, LaunchError};
 fn main() -> Result<(), BootstrapError<LaunchError>> {
     println!("stored: storage microservice");
 
-    let opts = Opts::parse();
-    LogLevel::from_verbosity_flag_count(opts.verbose).apply();
-    trace!("Command-line arguments: {:?}", &opts);
+    let mut opts = Opts::parse();
+    trace!("Command-line arguments: {:?}", opts);
+    opts.process();
+    trace!("Processed arguments: {:?}", opts);
 
     let mut config = Config {
-        data_dir: opts.data_dir,
-        rpc_endpoint: opts.rpc_endpoint,
-        msg_endpoint: opts.msg_endpoint,
-        ext_endpoint: opts.ext_endpoint,
-        verbose: opts.verbose,
+        data_dir: opts.shared.data_dir,
+        rpc_endpoint: opts.shared.rpc_endpoint,
+        msg_endpoint: opts.shared.msg_endpoint,
+        ext_endpoint: opts.shared.ext_endpoint,
+        ctl_endpoint: opts.shared.ctl_endpoint,
+        threaded: opts.shared.threaded_daemons,
     };
     trace!("Daemon configuration: {:?}", config);
-    config.process();
-    trace!("Processed configuration: {:?}", config);
-    debug!("CTL RPC socket {}", config.rpc_endpoint);
+    debug!("MSG socket {}", config.msg_endpoint);
+    debug!("CTL socket {}", config.ctl_endpoint);
+    debug!("RPC socket {}", config.rpc_endpoint);
+    debug!("STORM socket {}", config.ext_endpoint);
 
     /*
     use self::internal::ResultExt;
@@ -50,7 +53,7 @@ fn main() -> Result<(), BootstrapError<LaunchError>> {
      */
 
     debug!("Starting runtime ...");
-    stormd::service::run(config).expect("running stromd runtime");
+    stormd::run(config).expect("running stromd runtime");
 
     unreachable!()
 }

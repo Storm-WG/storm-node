@@ -437,9 +437,9 @@ dependencies = [
 
 [[package]]
 name = "clap_lex"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5538cd660450ebeb4234cfecf8f2284b844ffc4c50531e66d584ad5b91293613"
+checksum = "87eba3c8c7f42ef17f6c659fc7416d0f4758cd3e58861ee63c5fa4a4dde649e4"
 dependencies = [
  "os_str_bytes",
 ]
@@ -954,9 +954,9 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 
 [[package]]
 name = "indexmap"
-version = "1.9.0"
+version = "1.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c6392766afd7964e2531940894cffe4bd8d7d17dbc3c1c4857040fd4b33bdb3"
+checksum = "10a35a97730320ffe8e2d410b5d3b69279b98d2c14bdb8b70ea89ecf7888d41e"
 dependencies = [
  "autocfg 1.1.0",
  "hashbrown",
@@ -1197,7 +1197,7 @@ dependencies = [
 [[package]]
 name = "lnp_rpc"
 version = "0.8.0-alpha.1"
-source = "git+https://github.com/LNP-WG/lnp-node#092ac979fae5711559147f7e0bee0995cfdfa747"
+source = "git+https://github.com/LNP-WG/lnp-node#cfe49d3fdd20c18145a538f025e4b99e6867d2b1"
 dependencies = [
  "amplify",
  "bitcoin 0.28.1",
@@ -1208,7 +1208,7 @@ dependencies = [
  "lnp-core",
  "lnpbp",
  "log",
- "microservices",
+ "microservices 0.8.0-rc.8 (git+https://github.com/Internet2-WG/rust-microservices)",
  "serde 1.0.137",
  "serde_with",
  "serde_yaml",
@@ -1296,22 +1296,44 @@ dependencies = [
 
 [[package]]
 name = "microservices"
-version = "0.8.0-rc.4"
+version = "0.8.0-rc.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2ff0dfe414fdf502c29a32d9b9009526251e0aacc172aec6b88d995e263668f"
+checksum = "41eff4235c11dd53c92a10ebc58b0ca4d90fcb2b8770d5bec86031d7994e88c2"
+dependencies = [
+ "amplify",
+ "env_logger",
+ "internet2",
+ "lightning_encoding",
+ "log",
+ "nix",
+ "once_cell",
+ "secp256k1 0.22.1",
+ "serde 1.0.137",
+ "serde_with",
+ "strict_encoding",
+ "toml",
+ "zmq2",
+]
+
+[[package]]
+name = "microservices"
+version = "0.8.0-rc.8"
+source = "git+https://github.com/Internet2-WG/rust-microservices#6fd6b7aa2e2025fd454b40011e2ca5a2a5726fef"
 dependencies = [
  "amplify",
  "clap",
+ "colored",
  "config",
  "env_logger",
  "internet2",
  "lightning_encoding",
  "log",
- "nix 0.19.1",
+ "nix",
  "once_cell",
  "secp256k1 0.22.1",
  "serde 1.0.137",
  "serde_with",
+ "shellexpand",
  "strict_encoding",
  "toml",
  "zmq2",
@@ -1324,18 +1346,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "da39fc7a8adea97a677337b0091779dd86349226b869053af496584a9b9e5847"
 dependencies = [
  "bitcoin 0.28.1",
-]
-
-[[package]]
-name = "nix"
-version = "0.19.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2ccba0cfe4fdf15982d1674c69b1fd80bad427d293849982668dfe454bd61f2"
-dependencies = [
- "bitflags",
- "cc",
- "cfg-if",
- "libc",
 ]
 
 [[package]]
@@ -2066,7 +2076,7 @@ dependencies = [
  "const_format",
  "internet2",
  "log",
- "microservices",
+ "microservices 0.8.0-rc.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.8.5",
  "serde 1.0.137",
  "serde_with",
@@ -2086,7 +2096,7 @@ dependencies = [
  "configure_me_codegen",
  "internet2",
  "log",
- "microservices",
+ "microservices 0.8.0-rc.8 (git+https://github.com/Internet2-WG/rust-microservices)",
  "storm_rpc",
 ]
 
@@ -2123,7 +2133,7 @@ dependencies = [
  "amplify",
  "internet2",
  "log",
- "microservices",
+ "microservices 0.8.0-rc.8 (git+https://github.com/Internet2-WG/rust-microservices)",
  "once_cell",
  "serde 1.0.137",
  "serde_with",
@@ -2153,8 +2163,8 @@ dependencies = [
  "lnp2p",
  "lnp_rpc",
  "log",
- "microservices",
- "nix 0.24.1",
+ "microservices 0.8.0-rc.8 (git+https://github.com/Internet2-WG/rust-microservices)",
+ "nix",
  "shellexpand",
  "store_rpc",
  "storm-core 0.2.0",
@@ -2170,7 +2180,7 @@ dependencies = [
  "amplify",
  "internet2",
  "log",
- "microservices",
+ "microservices 0.8.0-rc.8 (git+https://github.com/Internet2-WG/rust-microservices)",
  "serde 1.0.137",
  "serde_with",
  "serde_yaml",

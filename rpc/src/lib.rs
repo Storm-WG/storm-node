@@ -21,9 +21,6 @@ extern crate log;
 
 #[cfg(feature = "serde")]
 extern crate serde_crate as serde;
-//#[cfg(feature = "serde")]
-//#[macro_use]
-//extern crate serde_with;
 
 pub mod client;
 mod error;
@@ -33,5 +30,4 @@ pub use client::Client;
 pub use error::FailureCode;
 pub use messages::RpcMsg;
 
-// TODO: Change port
-pub const STORM_NODE_RPC_ENDPOINT: &str = "0.0.0.0:61399";
+pub const STORM_NODE_RPC_ENDPOINT: &str = "0.0.0.0:64964";

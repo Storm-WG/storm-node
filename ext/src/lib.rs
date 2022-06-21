@@ -28,7 +28,7 @@ use internet2::{CreateUnmarshaller, Unmarshaller};
 pub use messages::ExtMsg;
 use once_cell::sync::Lazy;
 
-pub const STORM_NODE_EXT_ENDPOINT: &str = "{data_dir}/storm.ipc";
+pub const STORM_NODE_EXT_ENDPOINT: &str = "{data_dir}/storm";
 
 pub static STORM_EXT_UNMARSHALLER: Lazy<Unmarshaller<ExtMsg>> =
     Lazy::new(|| ExtMsg::create_unmarshaller());

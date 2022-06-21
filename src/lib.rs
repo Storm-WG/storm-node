@@ -21,6 +21,8 @@ mod config;
 mod error;
 pub mod stormd;
 pub mod bus;
+#[cfg(feature = "server")]
+pub mod opts;
 
 pub use config::Config;
 pub(crate) use error::DaemonError;

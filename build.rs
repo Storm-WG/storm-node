@@ -20,6 +20,10 @@ use clap::IntoApp;
 use clap_complete::generate_to;
 use clap_complete::shells::*;
 
+pub mod opts {
+    include!("src/opts.rs");
+}
+
 pub mod stormd {
     include!("src/stormd/opts.rs");
 }
