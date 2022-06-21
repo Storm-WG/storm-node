@@ -1,6 +1,6 @@
 [package]
-name = "storm_app"
-description = "Storm node application integration API"
+name = "storm_ext"
+description = "Storm node extension integration API"
 version = "0.8.0-alpha.1"
 authors = ["Dr. Maxim Orlovsky <orlovsky@lnp-bp.org>"]
 license = "MIT"
@@ -11,14 +11,14 @@ rust-version = "1.56.0"
 readme = "../README.md"
 
 [lib]
-name = "storm_app"
+name = "storm_ext"
 
 [dependencies]
 amplify = "3.12.0"
 strict_encoding = "1.8.1"
 internet2 = "0.8.0-beta.1"
 microservices = { version = "0.8.0-rc.4", default-features = false, features = ["client"] }
-storm-core = { version = "0.1.0", git = "https://github.com/Storm-WG/storm-core" }
+storm-core = { version = "0.2.0", git = "https://github.com/Storm-WG/storm-core" }
 storm_rpc = { version = "0.8.0-alpha.1", path = "../rpc" }
 serde_crate = { package = "serde", version = "1", features = ["derive"], optional = true }
 serde_with = { version = "1.8", optional = true }

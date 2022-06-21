@@ -21,8 +21,8 @@ _stormd() {
 '--msg-endpoint=[ZMQ socket for connecting LNP node message bus]:MSG_ENDPOINT:_files' \
 '-x+[ZMQ socket name/address for storm node RPC interface]:RPC_ENDPOINT:_files' \
 '--rpc-endpoint=[ZMQ socket name/address for storm node RPC interface]:RPC_ENDPOINT:_files' \
-'-a+[ZMQ socket name/address for storm node RPC interface]:APP_ENDPOINT:_files' \
-'--app-endpoint=[ZMQ socket name/address for storm node RPC interface]:APP_ENDPOINT:_files' \
+'-e+[ZMQ socket name/address for storm node RPC interface]:EXT_ENDPOINT:_files' \
+'--ext-endpoint=[ZMQ socket name/address for storm node RPC interface]:EXT_ENDPOINT:_files' \
 '-h[Print help information]' \
 '--help[Print help information]' \
 '-V[Print version information]' \

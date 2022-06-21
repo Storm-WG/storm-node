@@ -21,7 +21,7 @@ pub(crate) enum BusMsg {
     #[api(type = 5)]
     #[display(inner)]
     #[from]
-    App(AppMsg),
+    Ext(ExtMsg),
 }
 
 impl rpc::Request for BusMsg {}
@@ -31,7 +31,7 @@ impl rpc::Request for BusMsg {}
 #[api(encoding = "strict")]
 #[display(inner)]
 #[non_exhaustive]
-pub enum AppMsg {
+pub enum ExtMsg {
     #[api(type = 0x0100)]
     RegisterApp(StormApp),
 
@@ -62,32 +62,32 @@ pub enum AppMsg {
     Failure(rpc::Failure<FailureCode>),
 }
 
-impl From<presentation::Error> for AppMsg {
+impl From<presentation::Error> for ExtMsg {
     fn from(err: presentation::Error) -> Self {
-        AppMsg::Failure(rpc::Failure {
+        ExtMsg::Failure(rpc::Failure {
             code: rpc::FailureCode::Presentation,
             info: format!("{}", err),
         })
     }
 }
 
-impl From<storm::p2p::Messages> for AppMsg {
+impl From<storm::p2p::Messages> for ExtMsg {
     fn from(p2p: p2p::Messages) -> Self {
         match p2p {
             p2p::Messages::Post(p2p::PostReq {
                 message, container, ..
-            }) => AppMsg::Post(MesgPush { message, container }),
+            }) => ExtMsg::Post(MesgPush { message, container }),
             p2p::Messages::Read(p2p::ReadReq {
                 message_id,
                 with_container,
                 ..
-            }) => AppMsg::Read(MesgPull {
+            }) => ExtMsg::Read(MesgPull {
                 message_id,
                 with_container,
             }),
-            p2p::Messages::Push(p2p::ChunkPush { chunk, .. }) => AppMsg::Push(chunk),
-            p2p::Messages::Chunk(p2p::ChunkPull { chunk_id, .. }) => AppMsg::Chunk(chunk_id),
-            p2p::Messages::Decline(p2p::DeclineResp { mesg_id, .. }) => AppMsg::Decline(mesg_id),
+            p2p::Messages::Push(p2p::ChunkPush { chunk, .. }) => ExtMsg::Push(chunk),
+            p2p::Messages::Chunk(p2p::ChunkPull { chunk_id, .. }) => ExtMsg::Chunk(chunk_id),
+            p2p::Messages::Decline(p2p::DeclineResp { mesg_id, .. }) => ExtMsg::Decline(mesg_id),
             _ => unreachable!("Storm node uses outdated application API"),
         }
     }

@@ -12,7 +12,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, ValueHint};
 use internet2::addr::ServiceAddr;
-use storm_app::STORM_NODE_APP_ENDPOINT;
+use storm_ext::STORM_NODE_EXT_ENDPOINT;
 use storm_rpc::STORM_NODE_RPC_ENDPOINT;
 
 #[cfg(any(target_os = "linux"))]
@@ -84,9 +84,9 @@ pub struct Opts {
     #[clap(
         short,
         long,
-        env = "STORM_NODE_APP_ENDPOINT",
+        env = "STORM_NODE_EXT_ENDPOINT",
         value_hint = ValueHint::FilePath,
-        default_value = STORM_NODE_APP_ENDPOINT
+        default_value = STORM_NODE_EXT_ENDPOINT
     )]
-    pub app_endpoint: ServiceAddr,
+    pub ext_endpoint: ServiceAddr,
 }

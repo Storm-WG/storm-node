@@ -26,7 +26,7 @@ pub struct Config {
     pub msg_endpoint: ServiceAddr,
 
     /// ZMQ socket for inter-storm app messaging.
-    pub app_endpoint: ServiceAddr,
+    pub ext_endpoint: ServiceAddr,
 
     /// Data location
     pub data_dir: PathBuf,
@@ -47,7 +47,7 @@ impl Config {
 
         fs::create_dir_all(&self.data_dir).expect("Unable to access data directory");
 
-        for dir in vec![&mut self.rpc_endpoint, &mut self.app_endpoint] {
+        for dir in vec![&mut self.rpc_endpoint, &mut self.ext_endpoint] {
             if let ServiceAddr::Ipc(ref mut path) = dir {
                 me.process_dir(path);
             }

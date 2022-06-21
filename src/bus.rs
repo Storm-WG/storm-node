@@ -11,7 +11,7 @@
 use lnp_rpc::{ClientId, ServiceId};
 use microservices::{esb, rpc};
 use storm::StormApp;
-use storm_app::AppMsg;
+use storm_ext::ExtMsg;
 use storm_rpc::RpcMsg;
 
 pub(crate) type Endpoints = esb::EndpointList<ServiceBus>;
@@ -20,8 +20,8 @@ pub(crate) type Endpoints = esb::EndpointList<ServiceBus>;
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Display)]
 pub(crate) enum ServiceBus {
     /// Storm application messaging
-    #[display("APP")]
-    App,
+    #[display("EXT")]
+    Ext,
 
     /// RPC interface, from client to node
     #[display("RPC")]
@@ -56,7 +56,7 @@ pub(crate) enum BusMsg {
     #[api(type = 5)]
     #[display(inner)]
     #[from]
-    App(AppMsg),
+    Ext(ExtMsg),
 }
 
 impl rpc::Request for BusMsg {}
@@ -82,17 +82,17 @@ where
     }
 
     #[inline]
-    fn send_app(
+    fn send_ext(
         &self,
         endpoints: &mut Endpoints,
         app_id: StormApp,
-        message: impl Into<AppMsg>,
+        message: impl Into<ExtMsg>,
     ) -> Result<(), esb::Error<ServiceId>> {
         endpoints.send_to(
             ServiceBus::Rpc,
             self.identity(),
             ServiceId::Layer3App(app_id.into()),
-            BusMsg::App(message.into()),
+            BusMsg::Ext(message.into()),
         )
     }
 }

@@ -19,7 +19,7 @@ _stormd() {
 
     case "${cmd}" in
         stormd)
-            opts="-h -V -v -d -m -x -a --help --version --verbose --data-dir --msg-endpoint --rpc-endpoint --app-endpoint"
+            opts="-h -V -v -d -m -x -e --help --version --verbose --data-dir --msg-endpoint --rpc-endpoint --ext-endpoint"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
@@ -49,11 +49,11 @@ _stormd() {
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                --app-endpoint)
+                --ext-endpoint)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                -a)
+                -e)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;

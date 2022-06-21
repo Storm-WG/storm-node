@@ -20,7 +20,7 @@ use microservices::esb;
 use microservices::esb::{EndpointList, Error};
 use microservices::node::TryService;
 use storm::p2p::{StormMesg, STORM_P2P_UNMARSHALLER};
-use storm_app::AppMsg;
+use storm_ext::ExtMsg;
 use storm_rpc::RpcMsg;
 
 use crate::bus::{BusMsg, Endpoints, Responder, ServiceBus};
@@ -29,14 +29,14 @@ use crate::{Config, DaemonError, LaunchError};
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
     let msg_endpoint = config.msg_endpoint.clone();
     let rpc_endpoint = config.rpc_endpoint.clone();
-    let app_endpoint = config.app_endpoint.clone();
+    let ext_endpoint = config.ext_endpoint.clone();
     let runtime = Runtime::init(config)?;
 
     debug!("Connecting to service bus {}", msg_endpoint);
     let controller = esb::Controller::with(
         map! {
-            ServiceBus::App => esb::BusConfig::with_addr(
-                app_endpoint,
+            ServiceBus::Ext => esb::BusConfig::with_addr(
+                ext_endpoint,
                 ZmqSocketType::RouterBind,
                 Some(ServiceId::MsgApp(BifrostApp::Storm))
             ),
@@ -101,7 +101,7 @@ impl esb::Handler<ServiceBus> for Runtime {
             (ServiceBus::Msg, BusMsg::Birfost(msg), ServiceId::Peer(remote_peer)) => {
                 self.handle_p2p(endpoints, remote_peer, msg)
             }
-            (ServiceBus::App, BusMsg::App(msg), source) => self.handle_app(endpoints, source, msg),
+            (ServiceBus::Ext, BusMsg::Ext(msg), source) => self.handle_app(endpoints, source, msg),
             (ServiceBus::Rpc, BusMsg::Rpc(msg), ServiceId::Client(client_id)) => {
                 self.handle_rpc(endpoints, client_id, msg)
             }
@@ -134,7 +134,7 @@ impl Runtime {
         }) = message
         {
             let mesg = STORM_P2P_UNMARSHALLER.unmarshall(&*payload)?;
-            self.send_app(endpoints, mesg.storm_app(), mesg.deref().clone())?;
+            self.send_ext(endpoints, mesg.storm_app(), mesg.deref().clone())?;
         }
         Ok(())
     }
@@ -159,12 +159,12 @@ impl Runtime {
         &mut self,
         endpoints: &mut Endpoints,
         source: ServiceId,
-        message: AppMsg,
+        message: ExtMsg,
     ) -> Result<(), DaemonError> {
         match &message {
             wrong_msg => {
                 error!("Request is not supported by the APP interface");
-                return Err(DaemonError::wrong_esb_msg(ServiceBus::App, wrong_msg));
+                return Err(DaemonError::wrong_esb_msg(ServiceBus::Ext, wrong_msg));
             }
         }
 
