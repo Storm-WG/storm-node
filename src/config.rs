@@ -8,7 +8,6 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-use std::fs;
 use std::path::PathBuf;
 
 use internet2::addr::ServiceAddr;

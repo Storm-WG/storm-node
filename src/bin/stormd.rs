@@ -17,7 +17,6 @@ extern crate log;
 
 use clap::Parser;
 use microservices::error::BootstrapError;
-use microservices::shell::LogLevel;
 use storm_node::stormd::Opts;
 use storm_node::{stormd, Config, LaunchError};
 
@@ -29,7 +28,7 @@ fn main() -> Result<(), BootstrapError<LaunchError>> {
     opts.process();
     trace!("Processed arguments: {:?}", opts);
 
-    let mut config = Config {
+    let config = Config {
         data_dir: opts.shared.data_dir,
         rpc_endpoint: opts.shared.rpc_endpoint,
         msg_endpoint: opts.shared.msg_endpoint,

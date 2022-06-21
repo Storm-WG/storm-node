@@ -11,7 +11,7 @@
 use std::ops::Deref;
 
 use internet2::addr::NodeAddr;
-use internet2::{CreateUnmarshaller, Unmarshall, Unmarshaller, ZmqSocketType};
+use internet2::{Unmarshall, Unmarshaller, ZmqSocketType};
 use lnp2p::bifrost;
 use lnp2p::bifrost::{BifrostApp, Messages as LnMsg};
 use lnp_rpc::{ClientId, ServiceId};
@@ -60,13 +60,7 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
     unreachable!()
 }
 
-pub struct Runtime {
-    /// Original configuration object
-    pub(crate) config: Config,
-
-    /// Unmarshaller instance used for parsing RPC request
-    pub(crate) unmarshaller: Unmarshaller<BusMsg>,
-}
+pub struct Runtime {}
 
 impl Runtime {
     pub fn init(config: Config) -> Result<Self, BootstrapError<LaunchError>> {
@@ -75,10 +69,7 @@ impl Runtime {
 
         info!("Stormd runtime started successfully");
 
-        Ok(Self {
-            config,
-            unmarshaller: BusMsg::create_unmarshaller(),
-        })
+        Ok(Self {})
     }
 }
 

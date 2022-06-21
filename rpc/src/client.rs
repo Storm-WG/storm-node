@@ -33,7 +33,6 @@ pub struct Config {
 }
 
 pub struct Client {
-    config: Config,
     // TODO: Replace with RpcSession once its implementation is completed
     session_rpc: LocalSession,
     unmarshaller: Unmarshaller<BusMsg>,
@@ -51,7 +50,6 @@ impl Client {
             &ZMQ_CONTEXT,
         )?;
         Ok(Self {
-            config,
             session_rpc,
             unmarshaller: BusMsg::create_unmarshaller(),
         })

@@ -16,8 +16,6 @@ extern crate amplify;
 extern crate strict_encoding;
 #[macro_use]
 extern crate internet2;
-#[macro_use]
-extern crate log;
 
 #[cfg(feature = "serde")]
 extern crate serde_crate as serde;

@@ -1,0 +1,47 @@
+#compdef routed
+
+autoload -U is-at-least
+
+_routed() {
+    typeset -A opt_args
+    typeset -a _arguments_options
+    local ret=1
+
+    if is-at-least 5.2; then
+        _arguments_options=(-s -S -C)
+    else
+        _arguments_options=(-s -C)
+    fi
+
+    local context curcontext="$curcontext" state line
+    _arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]:DATA_DIR:_files -/' \
+'--data-dir=[Data directory path]:DATA_DIR:_files -/' \
+'-c+[Path for the configuration file]:CONFIG:_files' \
+'--config=[Path for the configuration file]:CONFIG:_files' \
+'-M+[ZMQ socket for peer message bus used to communicate with LNP node peerd service]:MSG_ENDPOINT:_files' \
+'--msg=[ZMQ socket for peer message bus used to communicate with LNP node peerd service]:MSG_ENDPOINT:_files' \
+'-X+[ZMQ socket for internal service control bus]:CTL_ENDPOINT:_files' \
+'--ctl=[ZMQ socket for internal service control bus]:CTL_ENDPOINT:_files' \
+'-R+[ZMQ socket name/address for Storm Node client-server RPC API]:RPC_ENDPOINT:_files' \
+'--rpc-endpoint=[ZMQ socket name/address for Storm Node client-server RPC API]:RPC_ENDPOINT:_files' \
+'-E+[ZMQ socket name/address for Storm extensions interface, used to handle application-specific messages to and from extension daemons, connected to this bus]:EXT_ENDPOINT:_files' \
+'--ext-endpoint=[ZMQ socket name/address for Storm extensions interface, used to handle application-specific messages to and from extension daemons, connected to this bus]:EXT_ENDPOINT:_files' \
+'-h[Print help information]' \
+'--help[Print help information]' \
+'-V[Print version information]' \
+'--version[Print version information]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-T[Spawn daemons as threads and not processes]' \
+'--threaded[Spawn daemons as threads and not processes]' \
+&& ret=0
+}
+
+(( $+functions[_routed_commands] )) ||
+_routed_commands() {
+    local commands; commands=()
+    _describe -t commands 'routed commands' commands "$@"
+}
+
+_routed "$@"
