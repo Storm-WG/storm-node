@@ -2081,7 +2081,9 @@ version = "0.8.0-alpha.1"
 dependencies = [
  "amplify",
  "clap",
+ "clap_complete",
  "colored",
+ "configure_me_codegen",
  "internet2",
  "log",
  "microservices",

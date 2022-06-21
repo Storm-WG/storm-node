@@ -9,3 +9,8 @@
 // If not, see <https://opensource.org/licenses/MIT>.
 
 pub mod service;
+#[cfg(feature = "server")]
+mod opts;
+
+#[cfg(feature = "server")]
+pub use opts::Opts;

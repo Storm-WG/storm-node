@@ -1,5 +1,4 @@
-// Storage daemon (stored): microservice frontend for different storage backends
-// used in LNP/BP nodes.
+// Storm node providing distributed storage & messaging for lightning network.
 //
 // Written in 2022 by
 //     Dr. Maxim Orlovsky <orlovsky@lnp-bp.org>
@@ -20,15 +19,15 @@ use clap::IntoApp;
 use clap_complete::generate_to;
 use clap_complete::shells::*;
 
-pub mod stormd {
-    include!("src/stormd/opts.rs");
+pub mod cli {
+    include!("src/opts.rs");
 }
 
 fn main() -> Result<(), configure_me_codegen::Error> {
-    let outdir = "./shell";
+    let outdir = "../shell";
 
     fs::create_dir_all(outdir).expect("failed to create shell dir");
-    for app in [stormd::Opts::command()].iter_mut() {
+    for app in [cli::Opts::command()].iter_mut() {
         let name = app.get_name().to_string();
         generate_to(Bash, app, &name, &outdir)?;
         generate_to(PowerShell, app, &name, &outdir)?;
