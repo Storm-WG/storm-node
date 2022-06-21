@@ -7,7 +7,7 @@ license = "MIT"
 keywords = ["daemon", "microservice", "lightning-network", "lnp-bp", "storage"]
 categories = ["network-programming"]
 edition = "2021"
-rust-version = "1.56.0"
+rust-version = "1.59.0"
 readme = "../README.md"
 
 [lib]

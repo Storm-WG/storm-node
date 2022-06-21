@@ -11,10 +11,10 @@ license = "MIT"
 keywords = ["daemon", "microservice", "lightning-network", "lnp-bp", "storage"]
 categories = ["network-programming"]
 edition = "2021"
-rust-version = "1.56.0"
+rust-version = "1.59.0"
 readme = "README.md"
 build = "build.rs"
-exclude = [".github", "Dockerfile", ".dockerignore", "contrib", "doc", "shell"]
+exclude = [".github", "Dockerfile", ".dockerignore", "contrib", "doc"]
 
 [lib]
 name = "storm_node"
@@ -34,8 +34,8 @@ storm-core = { version = "0.2.0", git = "https://github.com/Storm-WG/storm-core"
 storm_ext = { version = "0.8.0-alpha.1", path = "ext" }
 storm_rpc = { version = "0.8.0-alpha.1", path = "rpc" }
 store_rpc = { version = "0.8.0-alpha.1", git = "https://github.com/Storm-WG/storm-stored" }
-lnp2p = { version = "0.8.0", git = "https://github.com/LNP-WG/lnp-core" }
-lnp_rpc = { version = "0.8.0", git = "https://github.com/LNP-WG/lnp-node" }
+lnp2p = { version = "0.8.0-alpha.1", git = "https://github.com/LNP-WG/lnp-core" }
+lnp_rpc = { version = "0.8.0-alpha.1", git = "https://github.com/LNP-WG/lnp-node" }
 # OS
 chrono = "0.4"
 nix = "0.24"
