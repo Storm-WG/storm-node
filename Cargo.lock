@@ -2132,6 +2132,7 @@ name = "storm_ext"
 version = "0.8.0-alpha.1"
 dependencies = [
  "amplify",
+ "const_format",
  "internet2",
  "log",
  "microservices 0.8.0-rc.8 (git+https://github.com/Internet2-WG/rust-microservices)",
@@ -2142,7 +2143,6 @@ dependencies = [
  "storm-core 0.2.0",
  "storm_rpc",
  "strict_encoding",
- "zmq2",
 ]
 
 [[package]]

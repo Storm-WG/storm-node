@@ -26,7 +26,20 @@ use internet2::{CreateUnmarshaller, Unmarshaller};
 pub use messages::ExtMsg;
 use once_cell::sync::Lazy;
 
-pub const STORM_NODE_EXT_ENDPOINT: &str = "{data_dir}/storm";
+#[cfg(any(target_os = "linux"))]
+pub const STORM_NODE_DATA_DIR: &str = "~/.storm_node";
+#[cfg(any(target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
+pub const STORM_NODE_DATA_DIR: &str = "~/.storm_node";
+#[cfg(target_os = "macos")]
+pub const STORM_NODE_DATA_DIR: &str = "~/Library/Application Support/Storm Node";
+#[cfg(target_os = "windows")]
+pub const STORM_NODE_DATA_DIR: &str = "~\\AppData\\Local\\Storm Node";
+#[cfg(target_os = "ios")]
+pub const STORM_NODE_DATA_DIR: &str = "~/Documents";
+#[cfg(target_os = "android")]
+pub const STORM_NODE_DATA_DIR: &str = ".";
+
+pub const STORM_NODE_EXT_ENDPOINT: &str = const_format::formatcp!("{}/storm", STORM_NODE_DATA_DIR);
 
 pub static STORM_EXT_UNMARSHALLER: Lazy<Unmarshaller<ExtMsg>> =
     Lazy::new(|| ExtMsg::create_unmarshaller());

@@ -13,21 +13,8 @@ use std::path::PathBuf;
 use clap::{Parser, ValueHint};
 use internet2::addr::ServiceAddr;
 use microservices::shell::shell_setup;
-use storm_ext::STORM_NODE_EXT_ENDPOINT;
+use storm_ext::{STORM_NODE_DATA_DIR, STORM_NODE_EXT_ENDPOINT};
 use storm_rpc::STORM_NODE_RPC_ENDPOINT;
-
-#[cfg(any(target_os = "linux"))]
-pub const STORM_NODE_DATA_DIR: &str = "~/.storm_node";
-#[cfg(any(target_os = "freebsd", target_os = "openbsd", target_os = "netbsd"))]
-pub const STORM_NODE_DATA_DIR: &str = "~/.storm_node";
-#[cfg(target_os = "macos")]
-pub const STORM_NODE_DATA_DIR: &str = "~/Library/Application Support/Storm Node";
-#[cfg(target_os = "windows")]
-pub const STORM_NODE_DATA_DIR: &str = "~\\AppData\\Local\\Storm Node";
-#[cfg(target_os = "ios")]
-pub const STORM_NODE_DATA_DIR: &str = "~/Documents";
-#[cfg(target_os = "android")]
-pub const STORM_NODE_DATA_DIR: &str = ".";
 
 pub const STORM_NODE_CTL_ENDPOINT: &str = "{data_dir}/ctl";
 
