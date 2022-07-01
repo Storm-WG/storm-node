@@ -5,7 +5,7 @@ members = [".", "rpc", "cli", "ext"]
 [package]
 name = "storm_node"
 description = "Storm node"
-version = "0.8.0-alpha.1"
+version = "0.8.0-alpha.2"
 authors = ["Dr. Maxim Orlovsky <orlovsky@lnp-bp.org>"]
 license = "MIT"
 keywords = ["daemon", "microservice", "lightning-network", "lnp-bp", "storage"]
@@ -25,17 +25,17 @@ required-features = ["server"]
 
 [dependencies]
 # LNP/BP crates
-amplify = "3.12.0"
-strict_encoding = "1.8.8"
-commit_verify = "0.7.0" # TODO: Update to 0.8
-internet2 = { version = "0.8.0-rc.3", features = ["keygen", "zmq"] }
-microservices = { version = "0.8.0-rc.4", default-features = false, features = ["node"], git = "https://github.com/Internet2-WG/rust-microservices" }
-storm-core = { version = "0.2.0", git = "https://github.com/Storm-WG/storm-core" }
-storm_ext = { version = "0.8.0-alpha.1", path = "ext" }
-storm_rpc = { version = "0.8.0-alpha.1", path = "rpc" }
-store_rpc = { version = "0.8.0-alpha.1", git = "https://github.com/Storm-WG/storm-stored" }
-lnp2p = { version = "0.8.0-alpha.1", git = "https://github.com/LNP-WG/lnp-core" }
-lnp_rpc = { version = "0.8.0-alpha.1", git = "https://github.com/LNP-WG/lnp-node" }
+amplify = "3.12.1"
+strict_encoding = "0.8.0"
+commit_verify = "0.8.0"
+internet2 = { version = "0.8.0", features = ["keygen", "zmq"] }
+microservices = { version = "0.8.0", default-features = false, features = ["node"] }
+storm-core = "0.3.0"
+storm_ext = { version = "0.8.0-alpha.2", path = "ext" }
+storm_rpc = { version = "0.8.0-alpha.2", path = "rpc" }
+store_rpc = "0.8.0-rc.1"
+lnp2p = "0.8.0-beta.1"
+lnp_rpc = "0.8.0-beta.1"
 # OS
 chrono = "0.4"
 nix = "0.24"
@@ -49,12 +49,12 @@ colored = "2.0.0"
 shellexpand = { version = "2", optional = true }
 
 [build-dependencies]
-amplify = "3.12.0"
-internet2 = "0.8.0-beta.1"
-microservices = { version = "0.8.0-rc.4", default-features = false, features = ["node", "peer"], git = "https://github.com/Internet2-WG/rust-microservices" }
-storm_ext = { version = "0.8.0-alpha.1", path = "ext" }
-storm_rpc = { version = "0.8.0-alpha.1", path = "rpc" }
-store_rpc = { version = "0.8.0-alpha.1", git = "https://github.com/Storm-WG/storm-stored" }
+amplify = "3.12.1"
+internet2 = "0.8.0"
+microservices = { version = "0.8.0", default-features = false, features = ["node", "peer"] }
+storm_ext = { version = "0.8.0-alpha.2", path = "ext" }
+storm_rpc = { version = "0.8.0-alpha.2", path = "rpc" }
+store_rpc = "0.8.0-rc.1"
 clap = { version = "~3.1.18", features = ["env"] }
 clap_complete = "~3.1.4"
 log = { version = "0.4", features = ["max_level_trace", "release_max_level_debug"] }
@@ -67,7 +67,7 @@ default = ["server"]
 # Server is a standalone application that runs daemons.
 # Required for all apps that can be launched from command-line shell as binaries
 # (i.e. both servers and cli)
-server = ["microservices/server", "dotenv", "clap", "settings", "configure_me",
+server = ["microservices/server", "microservices/cli", "dotenv", "clap", "settings", "configure_me",
           "amplify/parse_arg", "shellexpand"]
 # Embedded is an app that contains embedded node and that talks to it through
 # integration layer

@@ -1,7 +1,7 @@
 [package]
 name = "storm-cli"
 description = "Storm node command-line interface"
-version = "0.8.0-alpha.1"
+version = "0.8.0-alpha.2"
 authors = ["Dr. Maxim Orlovsky <orlovsky@lnp-bp.org>"]
 license = "MIT"
 keywords = ["daemon", "microservice", "lightning-network", "lnp-bp", "storage"]
@@ -17,9 +17,9 @@ name = "storm-cli"
 
 [dependencies]
 amplify = "3.12.0"
-internet2 = "0.8.0-beta.1"
-microservices = { version = "0.8.0-rc.4", default-features = false, features = ["cli"], git = "https://github.com/Internet2-WG/rust-microservices" }
-storm_rpc = { version = "0.8.0-alpha.1", path = "../rpc" }
+internet2 = "0.8.0"
+microservices = { version = "0.8.0", default-features = false, features = ["cli"] }
+storm_rpc = { version = "0.8.0-alpha.2", path = "../rpc" }
 shellexpand = "2.1"
 clap = { version = "~3.1.18", features = ["derive", "env"] }
 log = "0.4.14"
