@@ -18,7 +18,7 @@ amplify = "3.12.1"
 strict_encoding = "0.8.0"
 internet2 = "0.8.0"
 microservices = { version = "0.8.0", default-features = false, features = ["client"] }
-storm-core = "0.3.0"
+storm-core = { version = "0.4.0", git = "https://github.com/Storm-WG/storm-core" }
 storm_rpc = { version = "0.8.0-alpha.2", path = "../rpc" }
 serde_crate = { package = "serde", version = "1", features = ["derive"], optional = true }
 serde_with = { version = "1.8", optional = true }

@@ -32,9 +32,14 @@ impl rpc::Request for BusMsg {}
 #[display(inner)]
 #[non_exhaustive]
 pub enum ExtMsg {
+    /// An extension app connecting to the Storm node must first signal with this message its app
+    /// id. After that storm node will be able to route messages coming from Bifrost network
+    /// targeting this app.
     #[api(type = 0x0100)]
     RegisterApp(StormApp),
 
+    /// A message sent from Storm node to the app extension on arrival of the new information from
+    /// remote peer via Bifrost network.
     #[api(type = 0x0010)]
     Post(MesgPush),
 
