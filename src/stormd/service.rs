@@ -125,7 +125,9 @@ impl Runtime {
         }) = message
         {
             let mesg = STORM_P2P_UNMARSHALLER.unmarshall(&*payload)?;
-            self.send_ext(endpoints, mesg.storm_app(), mesg.deref().clone())?;
+            if let Some(ext_mst) = ExtMsg::with(mesg.deref().clone(), remote_peer.id) {
+                self.send_ext(endpoints, mesg.storm_app(), ext_mst)?;
+            }
         }
         Ok(())
     }

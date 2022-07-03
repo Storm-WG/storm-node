@@ -2085,7 +2085,7 @@ dependencies = [
 [[package]]
 name = "storm-core"
 version = "0.4.0"
-source = "git+https://github.com/Storm-WG/storm-core#465aacf18c7810c56d89468a85686e54318802f5"
+source = "git+https://github.com/Storm-WG/storm-core#2841a6fd943f7a36b13c5869637f30418aecfa33"
 dependencies = [
  "amplify",
  "bitcoin_hashes",
