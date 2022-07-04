@@ -41,17 +41,17 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
             ServiceBus::Ext => esb::BusConfig::with_addr(
                 ext_endpoint,
                 ZmqSocketType::RouterBind,
-                Some(ServiceId::storm_broker())
+                None,
             ),
             ServiceBus::Ctl => esb::BusConfig::with_addr(
                 ctl_endpoint,
                 ZmqSocketType::RouterBind,
-                Some(ServiceId::storm_broker())
+                None,
             ),
             ServiceBus::Msg => esb::BusConfig::with_addr(
                 msg_endpoint,
                 ZmqSocketType::RouterConnect,
-                Some(ServiceId::storm_broker())
+                Some(ServiceId::Lnp)
             ),
             ServiceBus::Rpc => esb::BusConfig::with_addr(
                 rpc_endpoint,
@@ -91,7 +91,7 @@ impl esb::Handler<ServiceBus> for Runtime {
     type Request = BusMsg;
     type Error = DaemonError;
 
-    fn identity(&self) -> ServiceId { ServiceId::storm_broker() }
+    fn identity(&self) -> ServiceId { ServiceId::stormd() }
 
     fn handle(
         &mut self,

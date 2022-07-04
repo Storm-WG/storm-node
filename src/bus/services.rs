@@ -13,7 +13,7 @@ use std::str::FromStr;
 use internet2::addr::NodeAddr;
 use internet2::TypedEnum;
 use lnp2p::bifrost;
-use lnp2p::bifrost::BifrostApp;
+use lnp2p::bifrost::{BifrostApp, ChannelId};
 use lnp_rpc::{ClientId, ServiceName};
 use microservices::esb;
 use storm::{p2p, StormApp};
@@ -32,7 +32,11 @@ pub type DaemonId = u64;
 pub enum ServiceId {
     #[display("stormd")]
     #[strict_encoding(value = 0x24)] // This mimics Bifrost LNP storm service id
-    BifrostApp(BifrostApp),
+    MsgApp(BifrostApp),
+
+    #[display("chapp<{0}>")]
+    #[strict_encoding(value = 0x23)]
+    ChannelApp(BifrostApp),
 
     #[display("app<{0}>")]
     #[strict_encoding(value = 0x41)]
@@ -51,6 +55,12 @@ pub enum ServiceId {
     #[strict_encoding(value = 0x21)]
     Peer(NodeAddr),
 
+    #[display("channel<{0:#x}>")]
+    #[from]
+    #[from(TempChannelId)]
+    #[strict_encoding(value = 0x22)]
+    Channel(ChannelId),
+
     #[display("tansferd<{0}>")]
     #[strict_encoding(value = 0x42)]
     Transfer(DaemonId),
@@ -61,7 +71,7 @@ pub enum ServiceId {
 }
 
 impl ServiceId {
-    pub fn storm_broker() -> ServiceId { ServiceId::BifrostApp(BifrostApp::Storm) }
+    pub fn stormd() -> ServiceId { ServiceId::MsgApp(BifrostApp::Storm) }
 }
 
 impl esb::ServiceAddress for ServiceId {}
