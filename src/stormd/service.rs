@@ -19,7 +19,7 @@ use microservices::error::BootstrapError;
 use microservices::esb;
 use microservices::esb::{EndpointList, Error};
 use microservices::node::TryService;
-use storm::p2p::{StormMesg, STORM_P2P_UNMARSHALLER};
+use storm::p2p::{Messages, STORM_P2P_UNMARSHALLER};
 use storm_ext::ExtMsg;
 use storm_rpc::RpcMsg;
 
@@ -122,12 +122,29 @@ impl Runtime {
         if let LnMsg::Message(bifrost::Msg {
             app: BifrostApp::Storm,
             payload,
-        }) = message
+        }) = &message
         {
-            let mesg = STORM_P2P_UNMARSHALLER.unmarshall(&*payload)?;
-            if let Some(ext_mst) = ExtMsg::with(mesg.deref().clone(), remote_peer.id) {
-                self.send_ext(endpoints, mesg.storm_app(), ext_mst)?;
+            let mesg = STORM_P2P_UNMARSHALLER.unmarshall(&**payload)?.deref().clone();
+            match &mesg {
+                Messages::ListApps => {}
+                Messages::ActiveApps(_) => {}
+                Messages::ListTopics(_) => {}
+                Messages::AppTopics(_) => {}
+                Messages::ProposeTopic(_) => {}
+                Messages::Post(_) => {}
+                Messages::Read(_) => {}
+                Messages::Decline(_) => {}
+                Messages::Accept(_) => {}
+                Messages::PullContainer(_) => {}
+                Messages::PushContainer(_) => {}
+                Messages::Reject(_) => {}
+                Messages::PullChunk(_) => {}
+                Messages::PushChunk(_) => {}
+                _ => {}
             }
+        } else {
+            error!("Request is not supported by the RPC interface");
+            return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &message));
         }
         Ok(())
     }

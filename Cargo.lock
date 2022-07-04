@@ -2084,8 +2084,8 @@ dependencies = [
 
 [[package]]
 name = "storm-core"
-version = "0.4.0"
-source = "git+https://github.com/Storm-WG/storm-core#2841a6fd943f7a36b13c5869637f30418aecfa33"
+version = "0.7.0"
+source = "git+https://github.com/Storm-WG/storm-core#0e1e188ebf81a147ac190ff0e4ce25eb6f2e4c22"
 dependencies = [
  "amplify",
  "bitcoin_hashes",
@@ -2109,7 +2109,7 @@ dependencies = [
  "serde 1.0.138",
  "serde_with",
  "serde_yaml",
- "storm-core 0.4.0",
+ "storm-core 0.7.0",
  "storm_rpc",
  "strict_encoding",
 ]
@@ -2137,7 +2137,7 @@ dependencies = [
  "nix",
  "shellexpand",
  "store_rpc",
- "storm-core 0.4.0",
+ "storm-core 0.7.0",
  "storm_ext",
  "storm_rpc",
  "strict_encoding",

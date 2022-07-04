@@ -8,9 +8,14 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
+use std::collections::BTreeSet;
+use std::fmt::{self, Display, Formatter};
+
 use internet2::addr::NodeId;
 use microservices::rpc;
-use storm::{p2p, Mesg, MesgId, StormApp};
+use storm::p2p::AppMsg;
+use storm::{Mesg, MesgId, StormApp, Topic};
+use strict_encoding::{StrictDecode, StrictEncode};
 
 /// We need this wrapper type to be compatible with Storm Node having multiple message buses
 #[derive(Clone, Debug, Display, From, Api)]
@@ -28,68 +33,88 @@ impl rpc::Request for BusMsg {}
 #[derive(Clone, Debug, Display, Api, From)]
 #[derive(NetworkEncode, NetworkDecode)]
 #[api(encoding = "strict")]
-#[display(inner)]
 #[non_exhaustive]
 pub enum ExtMsg {
     /// An extension app connecting to the Storm node must first signal with this message its app
     /// id. After that storm node will be able to route messages coming from Bifrost network
     /// targeting this app.
     #[api(type = 0x0100)]
+    #[display("register_app({0})")]
     RegisterApp(StormApp),
+
+    /* TODO: Consider developing sync API like
+    /// Extension request to sync topics with the remote peer.
+    #[api(type = 0x0004)]
+    #[display("sync_topics({0})")]
+    SyncTopics(NodeId),
+
+    SyncMessages(PeerMsg<MesgFullId>),
+     */
+    /// List topics known to the local Storm node.
+    #[api(type = 0x0102)]
+    #[display("list_topics()")]
+    ListTopics,
+
+    /// Response to `ListTopics` request.
+    #[api(type = 0x0103)]
+    #[display("topics(...)")]
+    Topics(BTreeSet<MesgId>),
+
+    /// Sent or received propose to create a new Storm application topic which must be accepted or
+    /// not.
+    #[api(type = 0x0006)]
+    #[display("propose_topic(...)")]
+    ProposeTopic(AddressedMsg<Topic>),
 
     /// A message sent from Storm node to the app extension on arrival of the new information from
     /// remote peer via Bifrost network.
     #[api(type = 0x0008)]
-    Post(MesgPush),
+    #[display("post_received({0})")]
+    Post(AddressedMsg<Mesg>),
 
-    /// A message from app extension to external peer requesting certain message.
+    /// A message from app extension to external peer requesting certain message or a topic from a
+    /// remote peer.
     #[api(type = 0x000a)]
-    Read(MesgPull),
+    #[display("post_retrieve({0})")]
+    Read(AddressedMsg<MesgId>),
 
+    /// Command to the storm node to decline the topic or a message with a specific id coming from
+    /// certain peer.
     #[api(type = 0x000c)]
     #[display("decline({0})")]
-    Decline(MesgPull),
+    Decline(AddressedMsg<MesgId>),
 
+    /// Command to the storm node to accept the topic or a message with a specific id coming from
+    /// certain peer. This also requests the node to download all the unknown containers for the
+    /// topic or the message.
     #[api(type = 0x000e)]
     #[display("accept({0})")]
-    Accept(MesgPull),
+    Accept(AddressedMsg<MesgId>),
 }
 
-impl ExtMsg {
-    pub fn with(p2p: p2p::Messages, remote_peer: NodeId) -> Option<Self> {
-        match p2p {
-            p2p::Messages::Post(req) => Some(ExtMsg::Post(MesgPush {
-                remote_peer,
-                message: req.message,
-            })),
-            p2p::Messages::Read(req) => Some(ExtMsg::Read(MesgPull {
-                remote_peer,
-                message_id: req.message_id,
-            })),
-            p2p::Messages::Decline(req) => Some(ExtMsg::Decline(MesgPull {
-                remote_peer,
-                message_id: req.message_id,
-            })),
-            p2p::Messages::Accept(req) => Some(ExtMsg::Accept(MesgPull {
-                remote_peer,
-                message_id: req.message_id,
-            })),
+#[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug, NetworkEncode, NetworkDecode)]
+pub struct AddressedMsg<T>
+where T: StrictEncode + StrictDecode
+{
+    pub remote_peer: NodeId,
+    pub data: T,
+}
 
-            _ => None,
-        }
+impl<T> Display for AddressedMsg<T>
+where T: Display + StrictEncode + StrictDecode
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}", self.remote_peer, self.data)
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Display, NetworkEncode, NetworkDecode)]
-#[display("push({remote_peer}, {message})")]
-pub struct MesgPush {
-    pub remote_peer: NodeId,
-    pub message: Mesg,
-}
-
-#[derive(Clone, PartialEq, Eq, Debug, Display, NetworkEncode, NetworkDecode)]
-#[display("pull({remote_peer}, {message_id})")]
-pub struct MesgPull {
-    pub remote_peer: NodeId,
-    pub message_id: MesgId,
+impl<T> AddressedMsg<T>
+where T: StrictEncode + StrictDecode
+{
+    pub fn with(app_msg: AppMsg<T>, remote_peer: NodeId) -> Self {
+        AddressedMsg {
+            remote_peer,
+            data: app_msg.data,
+        }
+    }
 }
