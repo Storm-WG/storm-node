@@ -8,27 +8,30 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
+use std::collections::BTreeSet;
 use std::ops::Deref;
 
 use internet2::addr::NodeAddr;
 use internet2::{Unmarshall, ZmqSocketType};
 use lnp2p::bifrost;
 use lnp2p::bifrost::{BifrostApp, Messages as LnMsg};
-use lnp_rpc::{ClientId, ServiceId};
+use lnp_rpc::ClientId;
 use microservices::error::BootstrapError;
 use microservices::esb;
 use microservices::esb::{EndpointList, Error};
 use microservices::node::TryService;
 use storm::p2p::{Messages, STORM_P2P_UNMARSHALLER};
+use storm::StormApp;
 use storm_ext::ExtMsg;
 use storm_rpc::RpcMsg;
 
-use crate::bus::{BusMsg, Endpoints, Responder, ServiceBus};
+use crate::bus::{BusMsg, Endpoints, Responder, ServiceBus, ServiceId};
 use crate::{Config, DaemonError, LaunchError};
 
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
     let msg_endpoint = config.msg_endpoint.clone();
     let rpc_endpoint = config.rpc_endpoint.clone();
+    let ctl_endpoint = config.ctl_endpoint.clone();
     let ext_endpoint = config.ext_endpoint.clone();
     let runtime = Runtime::init(config)?;
 
@@ -38,12 +41,17 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
             ServiceBus::Ext => esb::BusConfig::with_addr(
                 ext_endpoint,
                 ZmqSocketType::RouterBind,
-                Some(ServiceId::MsgApp(BifrostApp::Storm))
+                Some(ServiceId::storm_broker())
+            ),
+            ServiceBus::Ctl => esb::BusConfig::with_addr(
+                ctl_endpoint,
+                ZmqSocketType::RouterBind,
+                Some(ServiceId::storm_broker())
             ),
             ServiceBus::Msg => esb::BusConfig::with_addr(
                 msg_endpoint,
                 ZmqSocketType::RouterConnect,
-                None
+                Some(ServiceId::storm_broker())
             ),
             ServiceBus::Rpc => esb::BusConfig::with_addr(
                 rpc_endpoint,
@@ -60,7 +68,9 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
     unreachable!()
 }
 
-pub struct Runtime {}
+pub struct Runtime {
+    registered_apps: BTreeSet<StormApp>,
+}
 
 impl Runtime {
     pub fn init(config: Config) -> Result<Self, BootstrapError<LaunchError>> {
@@ -69,7 +79,9 @@ impl Runtime {
 
         info!("Stormd runtime started successfully");
 
-        Ok(Self {})
+        Ok(Self {
+            registered_apps: empty!(),
+        })
     }
 }
 
@@ -79,7 +91,7 @@ impl esb::Handler<ServiceBus> for Runtime {
     type Request = BusMsg;
     type Error = DaemonError;
 
-    fn identity(&self) -> ServiceId { ServiceId::MsgApp(BifrostApp::Storm) }
+    fn identity(&self) -> ServiceId { ServiceId::storm_broker() }
 
     fn handle(
         &mut self,
@@ -89,7 +101,7 @@ impl esb::Handler<ServiceBus> for Runtime {
         request: Self::Request,
     ) -> Result<(), Self::Error> {
         match (bus_id, request, source) {
-            (ServiceBus::Msg, BusMsg::Birfost(msg), ServiceId::Peer(remote_peer)) => {
+            (ServiceBus::Msg, BusMsg::Bifrost(msg), ServiceId::Peer(remote_peer)) => {
                 self.handle_p2p(endpoints, remote_peer, msg)
             }
             (ServiceBus::Ext, BusMsg::Ext(msg), source) => self.handle_app(endpoints, source, msg),
@@ -126,7 +138,16 @@ impl Runtime {
         {
             let mesg = STORM_P2P_UNMARSHALLER.unmarshall(&**payload)?.deref().clone();
             match &mesg {
-                Messages::ListApps => {}
+                // Messages we process ourselves
+                Messages::ListApps => {
+                    self.send_p2p(
+                        endpoints,
+                        remote_peer,
+                        Messages::ActiveApps(self.registered_apps.clone()),
+                    )?;
+                }
+
+                // Messages we forward to the remote peer
                 Messages::ActiveApps(_) => {}
                 Messages::ListTopics(_) => {}
                 Messages::AppTopics(_) => {}

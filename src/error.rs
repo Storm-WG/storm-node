@@ -9,11 +9,10 @@
 // If not, see <https://opensource.org/licenses/MIT>.
 
 use internet2::presentation;
-use lnp_rpc::ServiceId;
 use microservices::{esb, rpc};
 use storm_rpc::{FailureCode, RpcMsg};
 
-use crate::bus::ServiceBus;
+use crate::bus::{ServiceBus, ServiceId};
 
 #[derive(Clone, PartialEq, Eq, Debug, Display, Error, From)]
 #[display(doc_comments)]
