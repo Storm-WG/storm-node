@@ -25,7 +25,7 @@ use storm::StormApp;
 use storm_ext::ExtMsg;
 use storm_rpc::RpcMsg;
 
-use crate::bus::{BusMsg, Endpoints, Responder, ServiceBus, ServiceId};
+use crate::bus::{BusMsg, CtlMsg, Endpoints, Responder, ServiceBus, ServiceId};
 use crate::{Config, DaemonError, LaunchError};
 
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
@@ -104,6 +104,7 @@ impl esb::Handler<ServiceBus> for Runtime {
             (ServiceBus::Msg, BusMsg::Bifrost(msg), ServiceId::Peer(remote_peer)) => {
                 self.handle_p2p(endpoints, remote_peer, msg)
             }
+            (ServiceBus::Ctl, BusMsg::Ctl(msg), source) => self.handle_ctl(endpoints, source, msg),
             (ServiceBus::Ext, BusMsg::Ext(msg), source) => self.handle_app(endpoints, source, msg),
             (ServiceBus::Rpc, BusMsg::Rpc(msg), ServiceId::Client(client_id)) => {
                 self.handle_rpc(endpoints, client_id, msg)
@@ -180,6 +181,30 @@ impl Runtime {
             wrong_msg => {
                 error!("Request is not supported by the RPC interface");
                 return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg));
+            }
+        }
+
+        Ok(())
+    }
+
+    fn handle_ctl(
+        &mut self,
+        endpoints: &mut Endpoints,
+        source: ServiceId,
+        message: CtlMsg,
+    ) -> Result<(), DaemonError> {
+        match &message {
+            CtlMsg::Hello => {
+                if let ServiceId::StormApp(app_id) = source {
+                    self.registered_apps.insert(app_id);
+                }
+
+                // TODO: Process with daemon registration
+            }
+
+            wrong_msg => {
+                error!("Request is not supported by the CTL interface");
+                return Err(DaemonError::wrong_esb_msg(ServiceBus::Ctl, wrong_msg));
             }
         }
 
