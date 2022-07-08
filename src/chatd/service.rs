@@ -17,9 +17,8 @@ use microservices::error::BootstrapError;
 use microservices::esb::{self, EndpointList, Error};
 use microservices::node::TryService;
 use rand::random;
-use storm_rpc::{ContainerAddr, RpcMsg};
+use storm_rpc::RpcMsg;
 
-use super::State;
 use crate::bus::{BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus, ServiceId};
 use crate::{Config, DaemonError, LaunchError};
 
@@ -46,14 +45,13 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
     )
     .map_err(|_| LaunchError::BusSetupFailure)?;
 
-    controller.run_or_panic("transferd");
+    controller.run_or_panic("chatd");
 
     unreachable!()
 }
 
 pub struct Runtime {
     pub(super) id: DaemonId,
-    pub(super) state: State,
     pub(super) store: store_rpc::Client,
 }
 
@@ -65,13 +63,9 @@ impl Runtime {
 
         let id = random();
 
-        info!("Transfer runtime started successfully");
+        info!("Chat runtime started successfully");
 
-        Ok(Self {
-            id,
-            store,
-            state: State::Free,
-        })
+        Ok(Self { id, store })
     }
 }
 
@@ -125,14 +119,6 @@ impl Runtime {
         message: RpcMsg,
     ) -> Result<(), DaemonError> {
         match message {
-            RpcMsg::Receive(ContainerAddr {
-                storm_app,
-                remote_peer,
-                container_id,
-            }) => {
-                self.handle_transfer(endpoints, client_id, storm_app, remote_peer, container_id)?;
-            }
-
             wrong_msg => {
                 error!("Request is not supported by the RPC interface");
                 return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg));
