@@ -14,14 +14,15 @@ use storm_rpc::{Client, FailureCode};
 
 use crate::{Command, Opts};
 
-impl Exec for Opts {
-    type Client = Client;
-    type Error = ServerError<FailureCode>;
-
-    fn exec(self, _runtime: &mut Self::Client) -> Result<(), Self::Error> {
+impl Opts {
+    pub fn exec(
+        self,
+        storm_client: &mut storm_rpc::Client,
+        lnp_client: &mut lnp_rpc::Client,
+    ) -> Result<(), ServerError<FailureCode>> {
         debug!("Performing {:?}", self.command);
         match self.command {
-            Command::None => {}
+            _ => {}
         }
         Ok(())
     }

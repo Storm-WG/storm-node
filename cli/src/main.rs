@@ -26,7 +26,6 @@ use clap::Parser;
 use internet2::addr::ServiceAddr;
 use microservices::cli::LogStyle;
 use microservices::shell::{Exec, LogLevel};
-use storm_rpc::client::Client;
 
 pub use crate::opts::{Command, Opts};
 
@@ -41,11 +40,19 @@ fn main() {
     if let ServiceAddr::Ipc(ref mut path) = connect {
         *path = shellexpand::tilde(path).to_string();
     }
-    debug!("RPC socket {}", connect);
+    debug!("STORM RPC socket {}", connect);
+    let mut storm_client =
+        storm_rpc::Client::with(connect).expect("Error initializing Storm client");
 
-    let mut client = Client::with(connect).expect("Error initializing client");
+    let connect = &mut opts.lnp_rpc;
+    if let ServiceAddr::Ipc(ref mut path) = connect {
+        *path = shellexpand::tilde(path).to_string();
+    }
+    debug!("LNP RPC socket {}", connect);
+    let mut lnp_client =
+        lnp_rpc::Client::with(connect.clone()).expect("Error initializing LNP client");
 
     trace!("Executing command: {}", opts.command);
-    opts.exec(&mut client)
+    opts.exec(&mut storm_client, &mut lnp_client)
         .unwrap_or_else(|err| eprintln!("{} {}\n", "Error:".err(), err.err_details()));
 }

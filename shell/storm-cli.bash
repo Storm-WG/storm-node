@@ -12,11 +12,14 @@ _storm-cli() {
             "$1")
                 cmd="storm__cli"
                 ;;
+            chat-listen)
+                cmd+="__chat__listen"
+                ;;
+            chat-send)
+                cmd+="__chat__send"
+                ;;
             help)
                 cmd+="__help"
-                ;;
-            none)
-                cmd+="__none"
                 ;;
             *)
                 ;;
@@ -25,7 +28,7 @@ _storm-cli() {
 
     case "${cmd}" in
         storm__cli)
-            opts="-h -V -R -v --help --version --rpc --verbose none help"
+            opts="-h -V -R -L -v --help --version --rpc --lnp --verbose chat-listen chat-send help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
@@ -39,6 +42,74 @@ _storm-cli() {
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
+                --lnp)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -L)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+            return 0
+            ;;
+        storm__cli__chat__listen)
+            opts="-h -R -L -v --help --rpc --lnp --verbose <PEER>"
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+                return 0
+            fi
+            case "${prev}" in
+                --rpc)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -R)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --lnp)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -L)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+            return 0
+            ;;
+        storm__cli__chat__send)
+            opts="-h -R -L -v --help --rpc --lnp --verbose <PEER>"
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+                return 0
+            fi
+            case "${prev}" in
+                --rpc)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -R)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --lnp)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -L)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
                 *)
                     COMPREPLY=()
                     ;;
@@ -47,7 +118,7 @@ _storm-cli() {
             return 0
             ;;
         storm__cli__help)
-            opts="-R -v --rpc --verbose <SUBCOMMAND>..."
+            opts="-R -L -v --rpc --lnp --verbose <SUBCOMMAND>..."
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
@@ -61,25 +132,11 @@ _storm-cli() {
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                *)
-                    COMPREPLY=()
-                    ;;
-            esac
-            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-            return 0
-            ;;
-        storm__cli__none)
-            opts="-h -R -v --help --rpc --verbose"
-            if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
-                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-                return 0
-            fi
-            case "${prev}" in
-                --rpc)
+                --lnp)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                -R)
+                -L)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;

@@ -8,14 +8,15 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-use internet2::addr::ServiceAddr;
+use internet2::addr::{NodeAddr, ServiceAddr};
+use lnp_rpc::LNP_NODE_RPC_ENDPOINT;
 use storm_rpc::STORM_NODE_RPC_ENDPOINT;
 
 /// Command-line tool for working with store daemon
 #[derive(Parser, Clone, PartialEq, Eq, Debug)]
 #[clap(name = "storm-cli", bin_name = "storm-cli", author, version)]
 pub struct Opts {
-    /// ZMQ socket for connecting daemon RPC interface.
+    /// ZMQ socket for connecting Storm node RPC interface.
     ///
     /// Socket can be either TCP address in form of `<ipv4 | ipv6>:<port>` – or a path
     /// to an IPC file.
@@ -29,6 +30,21 @@ pub struct Opts {
         env = "STORM_NODE_RPC_ENDPOINT"
     )]
     pub connect: ServiceAddr,
+
+    /// ZMQ socket for connecting LNP node RPC interface.
+    ///
+    /// Socket can be either TCP address in form of `<ipv4 | ipv6>:<port>` – or a path
+    /// to an IPC file.
+    ///
+    /// Defaults to `127.0.0.1:62962`.
+    #[clap(
+        short = 'L',
+        long = "lnp",
+        global = true,
+        default_value = LNP_NODE_RPC_ENDPOINT,
+        env = "LNP_NODE_RPC_ENDPOINT"
+    )]
+    pub lnp_rpc: ServiceAddr,
 
     /// Set verbosity level.
     ///
@@ -44,6 +60,9 @@ pub struct Opts {
 /// Command-line commands:
 #[derive(Subcommand, Clone, PartialEq, Eq, Debug, Display)]
 pub enum Command {
-    #[display("none")]
-    None,
+    #[display("chat-listen")]
+    ChatListen { peer: NodeAddr },
+
+    #[display("chat-send")]
+    ChatSend { peer: NodeAddr },
 }

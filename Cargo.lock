@@ -2061,6 +2061,7 @@ dependencies = [
  "colored",
  "configure_me_codegen",
  "internet2",
+ "lnp_rpc",
  "log",
  "microservices",
  "shellexpand",
