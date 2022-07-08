@@ -35,7 +35,7 @@ pub enum ServiceId {
     MsgApp(BifrostApp),
 
     #[display("chapp<{0}>")]
-    #[strict_encoding(value = 0x23)]
+    #[strict_encoding(value = 0x24)]
     ChannelApp(BifrostApp),
 
     #[display("app<{0}>")]
@@ -50,15 +50,14 @@ pub enum ServiceId {
     #[strict_encoding(value = 0x20)]
     Lnp,
 
-    #[display("peerd<{0}>")]
+    #[display("peerd<biffrost, {0}>")]
     #[from]
-    #[strict_encoding(value = 0x21)]
+    #[strict_encoding(value = 0x22)]
     Peer(NodeAddr),
 
     #[display("channel<{0:#x}>")]
     #[from]
-    #[from(TempChannelId)]
-    #[strict_encoding(value = 0x22)]
+    #[strict_encoding(value = 0x23)]
     Channel(ChannelId),
 
     #[display("tansferd<{0}>")]

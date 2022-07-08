@@ -13,6 +13,7 @@ use std::path::PathBuf;
 use clap::{Parser, ValueHint};
 use internet2::addr::ServiceAddr;
 use microservices::shell::shell_setup;
+use store_rpc::STORED_RPC_ENDPOINT;
 use storm_ext::{STORM_NODE_DATA_DIR, STORM_NODE_EXT_ENDPOINT};
 use storm_rpc::STORM_NODE_RPC_ENDPOINT;
 
@@ -121,6 +122,17 @@ pub struct Opts {
         default_value = STORM_NODE_EXT_ENDPOINT
     )]
     pub ext_endpoint: ServiceAddr,
+
+    /// ZMQ socket for connecting storage daemon.
+    #[clap(
+        short = 'S',
+        long = "store",
+        global = true,
+        env = "STORED_RPC_ENDPOINT",
+        default_value = STORED_RPC_ENDPOINT,
+        value_hint = ValueHint::FilePath
+    )]
+    pub store_endpoint: ServiceAddr,
 
     /// Spawn daemons as threads and not processes
     #[clap(short = 'T', long = "threaded")]

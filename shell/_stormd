@@ -27,6 +27,8 @@ _stormd() {
 '--rpc-endpoint=[ZMQ socket name/address for Storm Node client-server RPC API]:RPC_ENDPOINT:_files' \
 '-E+[ZMQ socket name/address for Storm extensions interface, used to handle application-specific messages to and from extension daemons, connected to this bus]:EXT_ENDPOINT:_files' \
 '--ext-endpoint=[ZMQ socket name/address for Storm extensions interface, used to handle application-specific messages to and from extension daemons, connected to this bus]:EXT_ENDPOINT:_files' \
+'-S+[ZMQ socket for connecting storage daemon]:STORE_ENDPOINT:_files' \
+'--store=[ZMQ socket for connecting storage daemon]:STORE_ENDPOINT:_files' \
 '-h[Print help information]' \
 '--help[Print help information]' \
 '-V[Print version information]' \

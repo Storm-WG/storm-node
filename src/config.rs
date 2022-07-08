@@ -33,6 +33,9 @@ pub struct Config {
     /// ZMQ socket for inter-storm app messaging.
     pub ext_endpoint: ServiceAddr,
 
+    /// ZMQ socket for Store service RPC.
+    pub store_endpoint: ServiceAddr,
+
     /// Indicates whether deamons should be spawned as threads (true) or as child processes (false)
     pub threaded: bool,
 }

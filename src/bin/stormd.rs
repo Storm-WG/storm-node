@@ -35,12 +35,14 @@ fn main() -> Result<(), BootstrapError<LaunchError>> {
         ext_endpoint: opts.shared.ext_endpoint,
         ctl_endpoint: opts.shared.ctl_endpoint,
         threaded: opts.shared.threaded_daemons,
+        store_endpoint: opts.shared.store_endpoint,
     };
     trace!("Daemon configuration: {:?}", config);
     debug!("MSG socket {}", config.msg_endpoint);
     debug!("CTL socket {}", config.ctl_endpoint);
     debug!("RPC socket {}", config.rpc_endpoint);
     debug!("STORM socket {}", config.ext_endpoint);
+    debug!("STORE socket {}", config.store_endpoint);
 
     /*
     use self::internal::ResultExt;

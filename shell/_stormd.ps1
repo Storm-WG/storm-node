@@ -33,6 +33,8 @@ Register-ArgumentCompleter -Native -CommandName 'stormd' -ScriptBlock {
             [CompletionResult]::new('--rpc-endpoint', 'rpc-endpoint', [CompletionResultType]::ParameterName, 'ZMQ socket name/address for Storm Node client-server RPC API')
             [CompletionResult]::new('-E', 'E', [CompletionResultType]::ParameterName, 'ZMQ socket name/address for Storm extensions interface, used to handle application-specific messages to and from extension daemons, connected to this bus')
             [CompletionResult]::new('--ext-endpoint', 'ext-endpoint', [CompletionResultType]::ParameterName, 'ZMQ socket name/address for Storm extensions interface, used to handle application-specific messages to and from extension daemons, connected to this bus')
+            [CompletionResult]::new('-S', 'S', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting storage daemon')
+            [CompletionResult]::new('--store', 'store', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting storage daemon')
             [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Print help information')
             [CompletionResult]::new('--help', 'help', [CompletionResultType]::ParameterName, 'Print help information')
             [CompletionResult]::new('-V', 'V', [CompletionResultType]::ParameterName, 'Print version information')

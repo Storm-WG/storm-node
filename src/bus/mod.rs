@@ -16,7 +16,7 @@ use microservices::rpc;
 use storm_ext::ExtMsg;
 use storm_rpc::RpcMsg;
 
-pub use self::ctl::CtlMsg;
+pub use self::ctl::{ContainerAddr, CtlMsg};
 pub use self::services::{DaemonId, ServiceId};
 pub(crate) use self::services::{Endpoints, Responder, ServiceBus};
 
