@@ -28,9 +28,9 @@ dependencies = [
 
 [[package]]
 name = "amplify"
-version = "3.12.1"
+version = "3.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e45c604e86700ffea68a7d90c3ffb1508dad1120902f31dbb08afc942cf8acf3"
+checksum = "116019a174e912931d5b19ca7ab6a22596d12cdb1320358fad3368f0aba135a9"
 dependencies = [
  "amplify_derive",
  "amplify_num",
@@ -521,9 +521,9 @@ dependencies = [
 
 [[package]]
 name = "const_format"
-version = "0.2.25"
+version = "0.2.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2906f2480cdc015e998deac388331a0f1c1cd88744948c749513020c83c370bc"
+checksum = "939dc9e2eb9077e0679d2ce32de1ded8531779360b003b4a972a7a39ec263495"
 dependencies = [
  "const_format_proc_macros",
 ]
@@ -1394,9 +1394,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.12.0"
+version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7709cef83f0c1f58f666e746a08b21e0085f7440fa6a29cc194d68aac97a4225"
+checksum = "18a6dbe30758c9f83eb00cbea4ac95966305f5a7772f3f42ebfc7fc7eddbd8e1"
 
 [[package]]
 name = "opaque-debug"
@@ -1750,9 +1750,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.5.6"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d83f127d94bdbcda4c8cc2e50f6f84f4b611f69c902699ca385a39c3a75f9ff1"
+checksum = "4c4eb3267174b8c6c2f654116623910a0fef09c4753f8dd83db29c48a0df988b"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -1761,9 +1761,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.6.26"
+version = "0.6.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49b3de9ec5dc0a3417da371aab17d729997c15010e7fd24ff707773a33bddb64"
+checksum = "a3f87b73ce11b1619a3c6332f45341e0047173771e8b8b73f87bfeefb7b56244"
 
 [[package]]
 name = "roff"
@@ -2033,9 +2033,9 @@ dependencies = [
 
 [[package]]
 name = "store_rpc"
-version = "0.8.0-rc.1"
+version = "0.8.0-rc.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4fbf96f6770e9e2577a7364a0993e6373bb946faf78dee3ca8d8e72f8a19655"
+checksum = "7760e213178dc34f9dc05a1c91ee805bb50e81b46d8776a2f2b92b988a26cc17"
 dependencies = [
  "amplify",
  "colored",
@@ -2047,7 +2047,7 @@ dependencies = [
  "serde 1.0.138",
  "serde_with",
  "serde_yaml",
- "storm-core 0.3.0",
+ "storm-core",
  "strict_encoding",
 ]
 
@@ -2069,23 +2069,9 @@ dependencies = [
 
 [[package]]
 name = "storm-core"
-version = "0.3.0"
+version = "0.8.0-alpha.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "827a0c554999be2cfc202f9179c6a7da3b9aa4671593d6c1a5f1c501af75b402"
-dependencies = [
- "amplify",
- "bitcoin_hashes",
- "commit_verify",
- "internet2",
- "once_cell",
- "stens",
- "strict_encoding",
-]
-
-[[package]]
-name = "storm-core"
-version = "0.7.0"
-source = "git+https://github.com/Storm-WG/storm-core#0e1e188ebf81a147ac190ff0e4ce25eb6f2e4c22"
+checksum = "40a08e0d389e300415db5520682b10c8cb6c897f740f24c5bcb9a9a96e1d4343"
 dependencies = [
  "amplify",
  "bitcoin_hashes",
@@ -2109,7 +2095,7 @@ dependencies = [
  "serde 1.0.138",
  "serde_with",
  "serde_yaml",
- "storm-core 0.7.0",
+ "storm-core",
  "storm_rpc",
  "strict_encoding",
 ]
@@ -2135,9 +2121,10 @@ dependencies = [
  "log",
  "microservices",
  "nix",
+ "rand 0.8.5",
  "shellexpand",
  "store_rpc",
- "storm-core 0.7.0",
+ "storm-core",
  "storm_ext",
  "storm_rpc",
  "strict_encoding",
