@@ -10,7 +10,7 @@
 
 use std::collections::VecDeque;
 
-use internet2::addr::NodeAddr;
+use internet2::addr::NodeId;
 use lnp_rpc::ClientId;
 use storm::{p2p, ChunkId, ContainerFullId, StormApp};
 
@@ -49,12 +49,12 @@ pub enum State {
     Free,
     AwaitingContainer {
         client_id: ClientId,
-        remote_peer: NodeAddr,
+        remote_id: NodeId,
         container_id: ContainerFullId,
     },
     AwaitingChunk {
         client_id: ClientId,
-        remote_peer: NodeAddr,
+        remote_id: NodeId,
         container_id: ContainerFullId,
         current: ChunkId,
         other: VecDeque<ChunkId>,
@@ -93,7 +93,7 @@ impl Runtime {
         endpoints: &mut Endpoints,
         client_id: ClientId,
         storm_app: StormApp,
-        remote_peer: NodeAddr,
+        remote_id: NodeId,
         container_id: ContainerFullId,
     ) -> Result<(), DaemonError> {
         self.state.require_state(StateName::Free, Instruction::Transfer)?;
@@ -101,7 +101,7 @@ impl Runtime {
         // Switching the state
         self.state = State::AwaitingContainer {
             client_id,
-            remote_peer,
+            remote_id,
             container_id,
         };
 
@@ -117,7 +117,7 @@ impl Runtime {
             endpoints,
             client_id,
             "Requesting container data",
-            remote_peer,
+            remote_id,
             p2p::Messages::PullContainer(msg),
         );
 

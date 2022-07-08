@@ -17,6 +17,7 @@ use microservices::error::BootstrapError;
 use microservices::esb::{self, EndpointList, Error};
 use microservices::node::TryService;
 use rand::random;
+use storm::StormApp;
 use storm_rpc::RpcMsg;
 
 use crate::bus::{BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus, ServiceId};
@@ -75,7 +76,7 @@ impl esb::Handler<ServiceBus> for Runtime {
     type Request = BusMsg;
     type Error = DaemonError;
 
-    fn identity(&self) -> ServiceId { ServiceId::Transfer(self.id) }
+    fn identity(&self) -> ServiceId { ServiceId::StormApp(StormApp::Chat) }
 
     fn on_ready(&mut self, endpoints: &mut EndpointList<ServiceBus>) -> Result<(), Self::Error> {
         thread::sleep(Duration::from_millis(100));

@@ -37,6 +37,7 @@ _stormd() {
 '*--verbose[Set verbosity level]' \
 '-T[Spawn daemons as threads and not processes]' \
 '--threaded[Spawn daemons as threads and not processes]' \
+'--chat[Run chat service]' \
 && ret=0
 }
 

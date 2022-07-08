@@ -10,7 +10,7 @@
 
 use std::str::FromStr;
 
-use internet2::addr::NodeAddr;
+use internet2::addr::NodeId;
 use internet2::TypedEnum;
 use lnp2p::bifrost;
 use lnp2p::bifrost::{BifrostApp, ChannelId};
@@ -53,7 +53,7 @@ pub enum ServiceId {
     #[display("peerd<biffrost, {0}>")]
     #[from]
     #[strict_encoding(value = 0x22)]
-    Peer(NodeAddr),
+    Peer(NodeId),
 
     #[display("channel<{0:#x}>")]
     #[from]
@@ -127,12 +127,12 @@ where
         endpoints: &mut Endpoints,
         client_id: ClientId,
         client_message: impl Into<OptionDetails>,
-        remote_peer: NodeAddr,
+        remote_id: NodeId,
         message: impl Into<p2p::Messages>,
     ) {
         let client_message = client_message.into();
         // We have nobody to report the failure to
-        let _ = match self.send_p2p(endpoints, remote_peer, message) {
+        let _ = match self.send_p2p(endpoints, remote_id, message) {
             Ok(_) => {
                 if let Some(client_message) = client_message.0 {
                     self.send_rpc(endpoints, client_id, RpcMsg::Progress(client_message))
@@ -155,7 +155,7 @@ where
     fn send_p2p(
         &self,
         endpoints: &mut Endpoints,
-        remote_peer: NodeAddr,
+        remote_id: NodeId,
         message: impl Into<p2p::Messages>,
     ) -> Result<(), esb::Error<ServiceId>> {
         let message = message.into().serialize();
@@ -163,7 +163,7 @@ where
             app: BifrostApp::Storm,
             payload: Box::from(message),
         }));
-        endpoints.send_to(ServiceBus::Msg, self.identity(), ServiceId::Peer(remote_peer), message)
+        endpoints.send_to(ServiceBus::Msg, self.identity(), ServiceId::Peer(remote_id), message)
     }
 
     #[inline]

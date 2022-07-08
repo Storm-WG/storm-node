@@ -20,6 +20,10 @@ pub struct Opts {
     /// command-line args or environment variables
     #[clap(flatten)]
     pub shared: crate::opts::Opts,
+
+    /// Run chat service.
+    #[clap(long)]
+    pub chat: bool,
 }
 
 impl Opts {

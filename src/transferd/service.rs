@@ -127,10 +127,10 @@ impl Runtime {
         match message {
             RpcMsg::Receive(ContainerAddr {
                 storm_app,
-                remote_peer,
+                remote_id,
                 container_id,
             }) => {
-                self.handle_transfer(endpoints, client_id, storm_app, remote_peer, container_id)?;
+                self.handle_transfer(endpoints, client_id, storm_app, remote_id, container_id)?;
             }
 
             wrong_msg => {

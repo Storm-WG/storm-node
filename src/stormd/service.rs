@@ -11,7 +11,7 @@
 use std::collections::BTreeSet;
 use std::ops::Deref;
 
-use internet2::addr::NodeAddr;
+use internet2::addr::NodeId;
 use internet2::{Unmarshall, ZmqSocketType};
 use lnp2p::bifrost;
 use lnp2p::bifrost::{BifrostApp, Messages as LnMsg};
@@ -101,8 +101,8 @@ impl esb::Handler<ServiceBus> for Runtime {
         request: Self::Request,
     ) -> Result<(), Self::Error> {
         match (bus_id, request, source) {
-            (ServiceBus::Msg, BusMsg::Bifrost(msg), ServiceId::Peer(remote_peer)) => {
-                self.handle_p2p(endpoints, remote_peer, msg)
+            (ServiceBus::Msg, BusMsg::Bifrost(msg), ServiceId::Peer(remote_id)) => {
+                self.handle_p2p(endpoints, remote_id, msg)
             }
             (ServiceBus::Ctl, BusMsg::Ctl(msg), source) => self.handle_ctl(endpoints, source, msg),
             (ServiceBus::Ext, BusMsg::Ext(msg), source) => self.handle_app(endpoints, source, msg),
@@ -129,7 +129,7 @@ impl Runtime {
     fn handle_p2p(
         &mut self,
         endpoints: &mut Endpoints,
-        remote_peer: NodeAddr,
+        remote_id: NodeId,
         message: LnMsg,
     ) -> Result<(), DaemonError> {
         if let LnMsg::Message(bifrost::Msg {
@@ -143,7 +143,7 @@ impl Runtime {
                 Messages::ListApps => {
                     self.send_p2p(
                         endpoints,
-                        remote_peer,
+                        remote_id,
                         Messages::ActiveApps(self.registered_apps.clone()),
                     )?;
                 }

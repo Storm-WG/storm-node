@@ -8,7 +8,7 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-use internet2::addr::NodeAddr;
+use internet2::addr::NodeId;
 use internet2::presentation;
 use microservices::rpc;
 use microservices::util::OptionDetails;
@@ -33,6 +33,22 @@ impl rpc::Request for BusMsg {}
 #[derive(NetworkEncode, NetworkDecode)]
 #[display(inner)]
 pub enum RpcMsg {
+    /* This will require LNP Node internals refactoring, in turn requiring microservice lib
+    refactoring to allow multiple ids on the same controller (one per message bus).
+
+    /// Connect to a remote peer over Bifrost protocol and ensure that the peer
+    /// supports Storm protocol.
+    #[display("connect{0}")]
+    Connect(NodeAddr),
+
+    /// Disconnect from a remote peer.
+    Disconnect(NodeId),
+     */
+    /// Send a chat message to the remote peer. The peer must be connected.
+    #[from]
+    #[display("tell({0})")]
+    Tell(ChatMsg),
+
     #[display("send({0})")]
     Send(ContainerAddr),
 
@@ -55,11 +71,19 @@ pub enum RpcMsg {
 
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug, Display)]
 #[derive(NetworkEncode, NetworkDecode)]
-#[display("{container_id}~{remote_peer}")]
+#[display("{container_id}~{remote_id}")]
 pub struct ContainerAddr {
     pub storm_app: StormApp,
-    pub remote_peer: NodeAddr,
+    pub remote_id: NodeId,
     pub container_id: ContainerFullId,
+}
+
+#[derive(Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug, Display)]
+#[derive(NetworkEncode, NetworkDecode)]
+#[display("{remote_id}: {text}")]
+pub struct ChatMsg {
+    pub remote_id: NodeId,
+    pub text: String,
 }
 
 impl From<presentation::Error> for RpcMsg {
