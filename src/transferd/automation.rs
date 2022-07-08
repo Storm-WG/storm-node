@@ -113,7 +113,13 @@ impl Runtime {
             app: storm_app,
             data: container_id,
         };
-        self.send_p2p(endpoints, remote_peer, p2p::Messages::PullContainer(msg))?;
+        self.send_p2p_reporting_client(
+            endpoints,
+            client_id,
+            "Requesting container data",
+            remote_peer,
+            p2p::Messages::PullContainer(msg),
+        );
 
         // Request all unknown chunks
         Ok(())

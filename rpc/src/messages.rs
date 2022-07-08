@@ -11,6 +11,7 @@
 use internet2::addr::NodeAddr;
 use internet2::presentation;
 use microservices::rpc;
+use microservices::util::OptionDetails;
 use storm::{ContainerFullId, StormApp};
 
 use crate::FailureCode;
@@ -40,8 +41,12 @@ pub enum RpcMsg {
 
     // Responses to CLI
     // ----------------
-    #[display("success({0})")]
-    Success,
+    #[display("progress(\"{0}\")")]
+    #[from]
+    Progress(String),
+
+    #[display("success{0}")]
+    Success(OptionDetails),
 
     #[display("failure({0:#})")]
     #[from]

@@ -14,8 +14,8 @@ use internet2::addr::NodeAddr;
 use internet2::TypedEnum;
 use lnp2p::bifrost;
 use lnp2p::bifrost::{BifrostApp, ChannelId};
-use lnp_rpc::{ClientId, ServiceName};
-use microservices::esb;
+use lnp_rpc::{ClientId, OptionDetails, ServiceName};
+use microservices::{esb, rpc};
 use storm::{p2p, StormApp};
 use storm_ext::ExtMsg;
 use storm_rpc::RpcMsg;
@@ -121,6 +121,36 @@ where
     Self: esb::Handler<ServiceBus>,
     esb::Error<ServiceId>: From<Self::Error>,
 {
+    #[inline]
+    fn send_p2p_reporting_client(
+        &self,
+        endpoints: &mut Endpoints,
+        client_id: ClientId,
+        client_message: impl Into<OptionDetails>,
+        remote_peer: NodeAddr,
+        message: impl Into<p2p::Messages>,
+    ) {
+        let client_message = client_message.into();
+        // We have nobody to report the failure to
+        let _ = match self.send_p2p(endpoints, remote_peer, message) {
+            Ok(_) => {
+                if let Some(client_message) = client_message.0 {
+                    self.send_rpc(endpoints, client_id, RpcMsg::Progress(client_message))
+                } else {
+                    Ok(())
+                }
+            }
+            Err(err) => {
+                let failure = rpc::Failure {
+                    code: rpc::FailureCode::Transport,
+                    info: format!("{}", err),
+                };
+                self.send_rpc(endpoints, client_id, failure)
+            }
+        }
+        .map_err(|e| warn!("client {} is disconnected", client_id));
+    }
+
     #[inline]
     fn send_p2p(
         &self,
