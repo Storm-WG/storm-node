@@ -21,6 +21,8 @@ pub enum FailureCode {
     Esb = 0x03,
 
     UnexpectedRequest = 0x04,
+
+    TransferAutomation = 0x10,
 }
 
 impl From<u16> for FailureCode {

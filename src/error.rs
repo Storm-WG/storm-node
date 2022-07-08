@@ -14,6 +14,7 @@ use microservices::{esb, rpc};
 use storm_rpc::{FailureCode, RpcMsg};
 
 use crate::bus::{ServiceBus, ServiceId};
+use crate::transferd;
 
 #[derive(Clone, Debug, Display, Error, From)]
 #[display(doc_comments)]
@@ -38,6 +39,11 @@ pub(crate) enum DaemonError {
     /// ESB error: {0}
     #[from]
     Esb(esb::Error<ServiceId>),
+
+    /// Error during transfer process
+    #[from]
+    #[display(inner)]
+    TransferAutomation(transferd::AutomationError),
 
     /// invalid storm message encoding. Details: {0}
     #[from]
@@ -64,6 +70,7 @@ impl From<DaemonError> for RpcMsg {
             DaemonError::RequestNotSupported(_, _) | DaemonError::SourceNotSupported(_, _, _) => {
                 FailureCode::UnexpectedRequest
             }
+            DaemonError::TransferAutomation(_) => FailureCode::TransferAutomation,
         };
         RpcMsg::Failure(rpc::Failure {
             code: code.into(),

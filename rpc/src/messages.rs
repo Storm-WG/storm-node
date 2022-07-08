@@ -8,8 +8,10 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
+use internet2::addr::NodeAddr;
 use internet2::presentation;
 use microservices::rpc;
+use storm::{ContainerFullId, StormApp};
 
 use crate::FailureCode;
 
@@ -30,6 +32,12 @@ impl rpc::Request for BusMsg {}
 #[derive(NetworkEncode, NetworkDecode)]
 #[display(inner)]
 pub enum RpcMsg {
+    #[display("send({0})")]
+    Send(ContainerAddr),
+
+    #[display("receive({0})")]
+    Receive(ContainerAddr),
+
     // Responses to CLI
     // ----------------
     #[display("success({0})")]
@@ -38,6 +46,15 @@ pub enum RpcMsg {
     #[display("failure({0:#})")]
     #[from]
     Failure(rpc::Failure<FailureCode>),
+}
+
+#[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug, Display)]
+#[derive(NetworkEncode, NetworkDecode)]
+#[display("{container_id}~{remote_peer}")]
+pub struct ContainerAddr {
+    pub storm_app: StormApp,
+    pub remote_peer: NodeAddr,
+    pub container_id: ContainerFullId,
 }
 
 impl From<presentation::Error> for RpcMsg {

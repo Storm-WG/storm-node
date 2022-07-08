@@ -17,12 +17,10 @@ use microservices::error::BootstrapError;
 use microservices::esb::{self, EndpointList, Error};
 use microservices::node::TryService;
 use rand::random;
-use storm_rpc::RpcMsg;
+use storm_rpc::{ContainerAddr, RpcMsg};
 
 use super::State;
-use crate::bus::{
-    BusMsg, ContainerAddr, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus, ServiceId,
-};
+use crate::bus::{BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus, ServiceId};
 use crate::{Config, DaemonError, LaunchError};
 
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
@@ -54,11 +52,9 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
 }
 
 pub struct Runtime {
-    id: DaemonId,
-
-    state: State,
-
-    pub(crate) store: store_rpc::Client,
+    pub(super) id: DaemonId,
+    pub(super) state: State,
+    pub(super) store: store_rpc::Client,
 }
 
 impl Runtime {
@@ -124,33 +120,35 @@ impl esb::Handler<ServiceBus> for Runtime {
 impl Runtime {
     fn handle_rpc(
         &mut self,
-        _endpoints: &mut Endpoints,
-        _client_id: ClientId,
+        endpoints: &mut Endpoints,
+        client_id: ClientId,
         message: RpcMsg,
     ) -> Result<(), DaemonError> {
         match message {
+            RpcMsg::Receive(ContainerAddr {
+                storm_app,
+                remote_peer,
+                container_id,
+            }) => {
+                self.handle_transfer(endpoints, client_id, storm_app, remote_peer, container_id)?;
+            }
+
             wrong_msg => {
                 error!("Request is not supported by the RPC interface");
                 return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg));
             }
         }
+
+        Ok(())
     }
 
     fn handle_ctl(
         &mut self,
-        endpoints: &mut Endpoints,
+        _endpoints: &mut Endpoints,
         _source: ServiceId,
         message: CtlMsg,
     ) -> Result<(), DaemonError> {
         match message {
-            CtlMsg::Receive(ContainerAddr {
-                client_id,
-                remote_peer,
-                container_id,
-            }) => {
-                self.handle_transfer(endpoints, client_id, remote_peer, container_id)?;
-            }
-
             wrong_msg => {
                 error!("Request is not supported by the CTL interface");
                 return Err(DaemonError::wrong_esb_msg(ServiceBus::Ctl, &wrong_msg));

@@ -12,20 +12,48 @@ use std::collections::VecDeque;
 
 use internet2::addr::NodeAddr;
 use lnp_rpc::ClientId;
-use storm::{ChunkId, ContainerFullId};
+use storm::{p2p, ChunkId, ContainerFullId, StormApp};
 
 use super::Runtime;
-use crate::bus::Endpoints;
+use crate::bus::{Endpoints, Responder};
 use crate::DaemonError;
 
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display, Error)]
+#[display(doc_comments)]
+pub enum AutomationError {
+    /// an incoming instruction {} requires {expected} state, while the service is in the {found}
+    /// state
+    InvalidState {
+        instruction: Instruction,
+        expected: StateName,
+        found: StateName,
+    },
+}
+
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display, Error)]
+#[display(Debug)]
+pub enum Instruction {
+    Transfer,
+}
+
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display, Error)]
+#[display(Debug)]
+pub enum StateName {
+    Free,
+    AwaitingContainer,
+    AwaitingChunk,
+}
+
+#[derive(Debug)]
 pub enum State {
     Free,
-    ConnectingPeer(NodeAddr),
     AwaitingContainer {
+        client_id: ClientId,
         remote_peer: NodeAddr,
         container_id: ContainerFullId,
     },
     AwaitingChunk {
+        client_id: ClientId,
         remote_peer: NodeAddr,
         container_id: ContainerFullId,
         current: ChunkId,
@@ -33,17 +61,60 @@ pub enum State {
     },
 }
 
+impl State {
+    pub fn state_name(&self) -> StateName {
+        match self {
+            State::Free => StateName::Free,
+            State::AwaitingContainer { .. } => StateName::AwaitingContainer,
+            State::AwaitingChunk { .. } => StateName::AwaitingChunk,
+        }
+    }
+
+    pub fn require_state(
+        &self,
+        expected: StateName,
+        instruction: Instruction,
+    ) -> Result<(), AutomationError> {
+        if self.state_name() != expected {
+            Err(AutomationError::InvalidState {
+                instruction,
+                expected: StateName::Free,
+                found: self.state_name(),
+            })
+        } else {
+            Ok(())
+        }
+    }
+}
+
 impl Runtime {
     pub(super) fn handle_transfer(
         &mut self,
         endpoints: &mut Endpoints,
         client_id: ClientId,
+        storm_app: StormApp,
         remote_peer: NodeAddr,
         container_id: ContainerFullId,
     ) -> Result<(), DaemonError> {
-        // TODO: Ensure connectivity to the remote peer
-        // TODO: self.send_p2p(endpoints, remote_peer, p2p::Messages::Post())?;
-        // Request remote peer container data
+        self.state.require_state(StateName::Free, Instruction::Transfer)?;
+
+        // Switching the state
+        self.state = State::AwaitingContainer {
+            client_id,
+            remote_peer,
+            container_id,
+        };
+
+        // TODO: Ensure connectivity to the remote peer. This requires connection
+        //       to LNP RPC bus
+
+        // Request the remote peer container data
+        let msg = p2p::AppMsg {
+            app: storm_app,
+            data: container_id,
+        };
+        self.send_p2p(endpoints, remote_peer, p2p::Messages::PullContainer(msg))?;
+
         // Request all unknown chunks
         Ok(())
     }

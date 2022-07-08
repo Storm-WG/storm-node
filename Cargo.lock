@@ -2141,6 +2141,7 @@ dependencies = [
  "serde 1.0.138",
  "serde_with",
  "serde_yaml",
+ "storm-core",
  "strict_encoding",
 ]
 

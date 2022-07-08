@@ -14,6 +14,7 @@ mod opts;
 mod automation;
 
 pub(self) use automation::State;
+pub use automation::{AutomationError, Instruction, StateName};
 #[cfg(feature = "server")]
 pub use opts::Opts;
 pub use service::{run, Runtime};

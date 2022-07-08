@@ -28,6 +28,6 @@ mod messages;
 
 pub use client::Client;
 pub use error::FailureCode;
-pub use messages::RpcMsg;
+pub use messages::{ContainerAddr, RpcMsg};
 
 pub const STORM_NODE_RPC_ENDPOINT: &str = "0.0.0.0:64964";
