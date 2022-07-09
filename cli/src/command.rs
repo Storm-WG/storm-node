@@ -8,20 +8,46 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-use microservices::rpc::ServerError;
-use microservices::shell::Exec;
-use storm_rpc::{Client, FailureCode};
+use std::io;
+use std::io::BufRead;
+
+use amplify::IoError;
+use lnp::addr::LnpAddr;
 
 use crate::{Command, Opts};
+
+#[derive(Debug, Display, Error, From)]
+#[display(inner)]
+pub enum Error {
+    #[from]
+    #[from(io::Error)]
+    Io(IoError),
+
+    #[from]
+    Storm(storm_rpc::Error),
+
+    #[from]
+    Lnp(lnp_rpc::Error),
+
+    #[from]
+    StrictEncoding(strict_encoding::Error),
+}
 
 impl Opts {
     pub fn exec(
         self,
         storm_client: &mut storm_rpc::Client,
         lnp_client: &mut lnp_rpc::Client,
-    ) -> Result<(), ServerError<FailureCode>> {
+    ) -> Result<(), Error> {
         debug!("Performing {:?}", self.command);
         match self.command {
+            Command::ChatSend { peer } => {
+                lnp_client.connect(LnpAddr::bifrost(peer))?;
+                let stdin = io::stdin();
+                for line in stdin.lock().lines() {
+                    storm_client.chat_tell(peer.id, line?)?;
+                }
+            }
             _ => {}
         }
         Ok(())
