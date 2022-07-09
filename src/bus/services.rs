@@ -29,7 +29,7 @@ pub type DaemonId = u64;
 pub(crate) enum ServiceBus {
     /// Storm application messaging
     #[display("EXT")]
-    Ext,
+    Storm,
 
     /// RPC interface, from client to node
     #[display("RPC")]
@@ -80,7 +80,7 @@ where
                 self.send_rpc(endpoints, client_id, failure)
             }
         }
-        .map_err(|e| warn!("client {} is disconnected", client_id));
+        .map_err(|_| warn!("client {} is disconnected", client_id));
     }
 
     #[inline]
@@ -90,10 +90,10 @@ where
         remote_id: NodeId,
         message: impl Into<p2p::Messages>,
     ) -> Result<(), esb::Error<ServiceId>> {
-        let message = message.into().serialize();
+        let payload = message.into().serialize();
         let message = BusMsg::Bifrost(bifrost::Messages::Message(bifrost::Msg {
             app: BifrostApp::Storm,
-            payload: Box::from(message),
+            payload: Box::from(payload),
         }));
         endpoints.send_to(ServiceBus::Msg, self.identity(), ServiceId::Peer(remote_id), message)
     }
@@ -127,14 +127,14 @@ where
     fn send_ext(
         &self,
         endpoints: &mut Endpoints,
-        app_id: StormApp,
+        app_id: Option<StormApp>,
         message: impl Into<ExtMsg>,
     ) -> Result<(), esb::Error<ServiceId>> {
         endpoints.send_to(
             ServiceBus::Rpc,
             self.identity(),
-            ServiceId::StormApp(app_id.into()),
-            BusMsg::Ext(message.into()),
+            app_id.map(ServiceId::StormApp).unwrap_or(ServiceId::stormd()),
+            BusMsg::Storm(message.into()),
         )
     }
 }

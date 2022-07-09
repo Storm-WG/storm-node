@@ -30,6 +30,8 @@ pub enum ServiceId {
     #[strict_encoding(value = 0x24)]
     ChannelApp(BifrostApp),
 
+    /// Storm application daemon. For sending messages to [`StormApp::System`] a
+    /// [`ServiceId::stormd()`] must be used.
     #[display("app<{0}>")]
     #[strict_encoding(value = 0x41)]
     StormApp(StormApp),

@@ -30,7 +30,7 @@ mod service_id;
 pub use client::Client;
 pub use error::{Error, FailureCode};
 pub(crate) use messages::BusMsg;
-pub use messages::{ContainerAddr, RpcMsg};
+pub use messages::{ChatMsg, ContainerAddr, RpcMsg};
 pub use service_id::ServiceId;
 
 pub const STORM_NODE_RPC_ENDPOINT: &str = "0.0.0.0:64964";

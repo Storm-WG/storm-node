@@ -14,7 +14,7 @@ use std::fmt::{self, Display, Formatter};
 use internet2::addr::NodeId;
 use microservices::rpc;
 use storm::p2p::AppMsg;
-use storm::{Mesg, MesgId, StormApp, Topic};
+use storm::{p2p, Mesg, MesgId, StormApp, Topic};
 use strict_encoding::{StrictDecode, StrictEncode};
 
 /// We need this wrapper type to be compatible with Storm Node having multiple message buses
@@ -53,12 +53,12 @@ pub enum ExtMsg {
     /// List topics known to the local Storm node.
     #[api(type = 0x0102)]
     #[display("list_topics()")]
-    ListTopics,
+    ListTopics(AddressedMsg<()>),
 
     /// Response to `ListTopics` request.
     #[api(type = 0x0103)]
     #[display("topics(...)")]
-    Topics(BTreeSet<MesgId>),
+    Topics(AddressedMsg<BTreeSet<MesgId>>),
 
     /// Sent or received propose to create a new Storm application topic which must be accepted or
     /// not.
@@ -92,11 +92,69 @@ pub enum ExtMsg {
     Accept(AddressedMsg<MesgId>),
 }
 
+impl ExtMsg {
+    pub fn remote_id(&self) -> NodeId {
+        match self {
+            ExtMsg::RegisterApp(_) => {
+                unreachable!("ExtMsg::remote_id must not be called on ExtMsg::RegisterApp")
+            }
+            ExtMsg::ListTopics(AddressedMsg { remote_id, .. })
+            | ExtMsg::Topics(AddressedMsg { remote_id, .. })
+            | ExtMsg::ProposeTopic(AddressedMsg { remote_id, .. })
+            | ExtMsg::Post(AddressedMsg { remote_id, .. })
+            | ExtMsg::Read(AddressedMsg { remote_id, .. })
+            | ExtMsg::Decline(AddressedMsg { remote_id, .. })
+            | ExtMsg::Accept(AddressedMsg { remote_id, .. }) => *remote_id,
+        }
+    }
+
+    pub fn p2p_message(self, app: StormApp) -> p2p::Messages {
+        match self {
+            ExtMsg::RegisterApp(_) => {
+                unreachable!("ExtMsg::remote_id must not be called on ExtMsg::RegisterApp")
+            }
+            ExtMsg::ListTopics(AddressedMsg { data, .. }) => {
+                p2p::Messages::ListTopics(AppMsg { app, data })
+            }
+            ExtMsg::Topics(AddressedMsg { data, .. }) => {
+                p2p::Messages::AppTopics(AppMsg { app, data })
+            }
+            ExtMsg::ProposeTopic(AddressedMsg { data, .. }) => {
+                p2p::Messages::ProposeTopic(AppMsg { app, data })
+            }
+            ExtMsg::Post(AddressedMsg { data, .. }) => p2p::Messages::Post(AppMsg { app, data }),
+            ExtMsg::Read(AddressedMsg { data, .. }) => p2p::Messages::Read(AppMsg { app, data }),
+            ExtMsg::Decline(AddressedMsg { data, .. }) => {
+                p2p::Messages::Decline(AppMsg { app, data })
+            }
+            ExtMsg::Accept(AddressedMsg { data, .. }) => {
+                p2p::Messages::Accept(AppMsg { app, data })
+            }
+        }
+    }
+
+    pub fn to_payload(&self) -> Vec<u8> {
+        match self {
+            ExtMsg::RegisterApp(_) => {
+                unreachable!("ExtMsg::remote_id must not be called on ExtMsg::RegisterApp")
+            }
+            ExtMsg::ListTopics(AddressedMsg { data, .. }) => data.strict_serialize(),
+            ExtMsg::Topics(AddressedMsg { data, .. }) => data.strict_serialize(),
+            ExtMsg::ProposeTopic(AddressedMsg { data, .. }) => data.strict_serialize(),
+            ExtMsg::Post(AddressedMsg { data, .. }) => data.strict_serialize(),
+            ExtMsg::Read(AddressedMsg { data, .. }) => data.strict_serialize(),
+            ExtMsg::Decline(AddressedMsg { data, .. }) => data.strict_serialize(),
+            ExtMsg::Accept(AddressedMsg { data, .. }) => data.strict_serialize(),
+        }
+        .expect("extension-generated message can't be serialized as a bifrost message payload")
+    }
+}
+
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug, NetworkEncode, NetworkDecode)]
 pub struct AddressedMsg<T>
 where T: StrictEncode + StrictDecode
 {
-    pub remote_peer: NodeId,
+    pub remote_id: NodeId,
     pub data: T,
 }
 
@@ -104,7 +162,7 @@ impl<T> Display for AddressedMsg<T>
 where T: Display + StrictEncode + StrictDecode
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}, {}", self.remote_peer, self.data)
+        write!(f, "{}, {}", self.remote_id, self.data)
     }
 }
 
@@ -113,7 +171,7 @@ where T: StrictEncode + StrictDecode
 {
     pub fn with(app_msg: AppMsg<T>, remote_peer: NodeId) -> Self {
         AddressedMsg {
-            remote_peer,
+            remote_id: remote_peer,
             data: app_msg.data,
         }
     }

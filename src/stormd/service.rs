@@ -38,7 +38,7 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
     debug!("Connecting to service bus {}", msg_endpoint);
     let controller = esb::Controller::with(
         map! {
-            ServiceBus::Ext => esb::BusConfig::with_addr(
+            ServiceBus::Storm => esb::BusConfig::with_addr(
                 ext_endpoint,
                 ZmqSocketType::RouterBind,
                 None,
@@ -105,7 +105,9 @@ impl esb::Handler<ServiceBus> for Runtime {
                 self.handle_p2p(endpoints, remote_id, msg)
             }
             (ServiceBus::Ctl, BusMsg::Ctl(msg), source) => self.handle_ctl(endpoints, source, msg),
-            (ServiceBus::Ext, BusMsg::Ext(msg), source) => self.handle_app(endpoints, source, msg),
+            (ServiceBus::Storm, BusMsg::Storm(msg), ServiceId::StormApp(app_id)) => {
+                self.handle_app(endpoints, app_id, msg)
+            }
             (ServiceBus::Rpc, BusMsg::Rpc(msg), ServiceId::Client(client_id)) => {
                 self.handle_rpc(endpoints, client_id, msg)
             }
@@ -195,10 +197,6 @@ impl Runtime {
     ) -> Result<(), DaemonError> {
         match &message {
             CtlMsg::Hello => {
-                if let ServiceId::StormApp(app_id) = source {
-                    self.registered_apps.insert(app_id);
-                }
-
                 // TODO: Process with daemon registration
             }
 
@@ -214,13 +212,32 @@ impl Runtime {
     fn handle_app(
         &mut self,
         endpoints: &mut Endpoints,
-        source: ServiceId,
+        app: StormApp,
         message: ExtMsg,
     ) -> Result<(), DaemonError> {
-        match &message {
-            wrong_msg => {
-                error!("Request is not supported by the APP interface");
-                return Err(DaemonError::wrong_esb_msg(ServiceBus::Ext, wrong_msg));
+        match message {
+            ExtMsg::RegisterApp(app_id) => {
+                if app == app_id {
+                    info!("Application {} is registered", app_id);
+                    self.registered_apps.insert(app_id);
+                } else {
+                    error!(
+                        "Request on application {} registration issued by a non-application \
+                         daemon {}",
+                        app,
+                        ServiceId::StormApp(app_id)
+                    );
+                    return Err(DaemonError::wrong_esb_msg_source(
+                        ServiceBus::Storm,
+                        &message,
+                        ServiceId::StormApp(app_id),
+                    ));
+                }
+            }
+
+            // We need to the rest of the messages to the Bifrost network
+            forward => {
+                self.send_p2p(endpoints, forward.remote_id(), forward.p2p_message(app))?;
             }
         }
 

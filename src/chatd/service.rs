@@ -17,8 +17,9 @@ use microservices::error::BootstrapError;
 use microservices::esb::{self, EndpointList, Error};
 use microservices::node::TryService;
 use rand::random;
-use storm::StormApp;
-use storm_rpc::{RpcMsg, ServiceId};
+use storm::{Mesg, StormApp};
+use storm_ext::{AddressedMsg, ExtMsg};
+use storm_rpc::{ChatMsg, RpcMsg, ServiceId};
 
 use crate::bus::{BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus};
 use crate::{Config, DaemonError, LaunchError};
@@ -26,11 +27,17 @@ use crate::{Config, DaemonError, LaunchError};
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
     let rpc_endpoint = config.rpc_endpoint.clone();
     let ctl_endpoint = config.ctl_endpoint.clone();
+    let ext_endpoint = config.ext_endpoint.clone();
     let runtime = Runtime::init(config)?;
 
-    debug!("Connecting to service buses {}, {}", rpc_endpoint, ctl_endpoint);
+    debug!("Connecting to service buses {}, {}, {}", rpc_endpoint, ctl_endpoint, ext_endpoint);
     let controller = esb::Controller::with(
         map! {
+            ServiceBus::Storm => esb::BusConfig::with_addr(
+                ext_endpoint,
+                ZmqSocketType::RouterConnect,
+                Some(ServiceId::stormd())
+            ),
             ServiceBus::Rpc => esb::BusConfig::with_addr(
                 rpc_endpoint,
                 ZmqSocketType::RouterConnect,
@@ -92,6 +99,11 @@ impl esb::Handler<ServiceBus> for Runtime {
         request: Self::Request,
     ) -> Result<(), Self::Error> {
         match (bus_id, request, source) {
+            (ServiceBus::Storm, BusMsg::Storm(msg), service_id)
+                if service_id == ServiceId::stormd() =>
+            {
+                self.handle_storm(endpoints, msg)
+            }
             (ServiceBus::Rpc, BusMsg::Rpc(msg), ServiceId::Client(client_id)) => {
                 self.handle_rpc(endpoints, client_id, msg)
             }
@@ -113,6 +125,22 @@ impl esb::Handler<ServiceBus> for Runtime {
 }
 
 impl Runtime {
+    fn handle_storm(
+        &mut self,
+        _endpoints: &mut Endpoints,
+        message: ExtMsg,
+    ) -> Result<(), DaemonError> {
+        match message {
+            ExtMsg::Post(_) => {}
+            wrong_msg => {
+                error!("Request is not supported by the Storm interface");
+                return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg));
+            }
+        }
+
+        Ok(())
+    }
+
     fn handle_rpc(
         &mut self,
         endpoints: &mut Endpoints,
@@ -120,6 +148,18 @@ impl Runtime {
         message: RpcMsg,
     ) -> Result<(), DaemonError> {
         match message {
+            RpcMsg::SendChatMsg(ChatMsg { remote_id, text }) => {
+                let addressed_msg = AddressedMsg {
+                    remote_id,
+                    data: Mesg {
+                        parent_id: none!(),
+                        body: text.into_bytes(),
+                        container_ids: empty!(),
+                    },
+                };
+                self.send_ext(endpoints, None, ExtMsg::Post(addressed_msg))?;
+            }
+
             wrong_msg => {
                 error!("Request is not supported by the RPC interface");
                 return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg));

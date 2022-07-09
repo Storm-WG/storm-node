@@ -39,7 +39,7 @@ pub(crate) enum BusMsg {
     #[api(type = 5)]
     #[display(inner)]
     #[from]
-    Ext(ExtMsg),
+    Storm(ExtMsg),
 
     /// CTL requests
     #[api(type = 6)]
