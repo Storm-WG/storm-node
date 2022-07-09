@@ -14,6 +14,7 @@ use std::time::Duration;
 use internet2::addr::{NodeId, ServiceAddr};
 use internet2::ZmqSocketType;
 use microservices::esb::{self, BusId, ClientId};
+use storm::StormApp;
 
 use crate::messages::ChatMsg;
 use crate::{BusMsg, Error, RpcMsg, ServiceId};
@@ -33,7 +34,7 @@ type Bus = esb::EndpointList<RpcBus>;
 pub struct Client {
     client_id: ClientId,
     user_agent: String,
-    response_queue: Vec<RpcMsg>,
+    response_queue: Vec<(RpcMsg, ServiceId)>,
     esb: esb::Controller<RpcBus, BusMsg, Handler>,
 }
 
@@ -43,11 +44,8 @@ impl Client {
 
         debug!("Setting up RPC client...");
         let client_id = rand::random();
-        let bus_config = esb::BusConfig::with_addr(
-            connect,
-            ZmqSocketType::RouterConnect,
-            Some(ServiceId::router()),
-        );
+        let bus_config =
+            esb::BusConfig::with_addr(connect, ZmqSocketType::RouterConnect, Some(ServiceId::Lnp));
         let esb = esb::Controller::with(
             map! {
                 RpcBus => bus_config
@@ -70,22 +68,22 @@ impl Client {
 
     pub fn client_id(&self) -> ClientId { self.client_id }
 
-    fn request(&mut self, req: impl Into<RpcMsg>) -> Result<(), Error> {
+    fn request(&mut self, req: impl Into<RpcMsg>, service_id: ServiceId) -> Result<(), Error> {
         let req = req.into();
         debug!("Executing {}", req);
-        self.esb.send_to(RpcBus, ServiceId::Rgb, BusMsg::Rpc(req))?;
+        self.esb.send_to(RpcBus, service_id, BusMsg::Rpc(req))?;
         Ok(())
     }
 
-    fn response(&mut self) -> Result<RpcMsg, Error> {
+    fn response(&mut self) -> Result<(RpcMsg, ServiceId), Error> {
         loop {
-            if let Some(resp) = self.response_queue.pop() {
-                trace!("Got response {:?}", resp);
-                return Ok(resp);
+            if let Some((resp, service_id)) = self.response_queue.pop() {
+                trace!("Got response {:?} from {}", resp, service_id);
+                return Ok((resp, service_id));
             } else {
                 for poll in self.esb.recv_poll()? {
                     match poll.request {
-                        BusMsg::Rpc(msg) => self.response_queue.push(msg),
+                        BusMsg::Rpc(msg) => self.response_queue.push((msg, poll.source)),
                     }
                 }
             }
@@ -95,7 +93,17 @@ impl Client {
 
 impl Client {
     pub fn chat_tell(&mut self, remote_id: NodeId, text: String) -> Result<(), Error> {
-        self.request(RpcMsg::Tell(ChatMsg { remote_id, text }))
+        self.request(RpcMsg::SendChatMsg(ChatMsg { remote_id, text }), ServiceId::chatd())
+    }
+
+    pub fn chat_recv(&mut self, from_remote_id: NodeId) -> Result<Result<String, RpcMsg>, Error> {
+        match self.response()? {
+            (
+                RpcMsg::ReceivedChatMsg(ChatMsg { remote_id, text }),
+                ServiceId::StormApp(StormApp::Chat),
+            ) if remote_id == from_remote_id => Ok(Ok(text)),
+            (msg, _) => Ok(Err(msg)),
+        }
     }
 }
 

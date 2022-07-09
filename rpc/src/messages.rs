@@ -45,9 +45,11 @@ pub enum RpcMsg {
     Disconnect(NodeId),
      */
     /// Send a chat message to the remote peer. The peer must be connected.
-    #[from]
-    #[display("tell({0})")]
-    Tell(ChatMsg),
+    #[display("send_chat({0})")]
+    SendChatMsg(ChatMsg),
+
+    #[display("recv_chat({0})")]
+    ReceivedChatMsg(ChatMsg),
 
     #[display("send({0})")]
     Send(ContainerAddr),
