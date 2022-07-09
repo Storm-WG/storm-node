@@ -13,8 +13,8 @@ use std::fmt::{self, Display, Formatter};
 
 use internet2::addr::NodeId;
 use microservices::rpc;
-use storm::p2p::AppMsg;
-use storm::{p2p, Mesg, MesgId, StormApp, Topic};
+use storm::p2p::{self, AppMsg};
+use storm::{Mesg, MesgId, StormApp, Topic};
 use strict_encoding::{StrictDecode, StrictEncode};
 
 /// We need this wrapper type to be compatible with Storm Node having multiple message buses
@@ -90,6 +90,40 @@ pub enum ExtMsg {
     #[api(type = 0x000e)]
     #[display("accept({0})")]
     Accept(AddressedMsg<MesgId>),
+}
+
+pub trait StormExtMsg {
+    fn storm_ext_msg(self, remote_id: NodeId) -> Result<(StormApp, ExtMsg), Self>
+    where Self: Sized;
+}
+
+impl StormExtMsg for p2p::Messages {
+    fn storm_ext_msg(self, remote_id: NodeId) -> Result<(StormApp, ExtMsg), Self> {
+        Ok(match self {
+            p2p::Messages::ListTopics(AppMsg { data, app }) => {
+                (app, ExtMsg::ListTopics(AddressedMsg { remote_id, data }))
+            }
+            p2p::Messages::AppTopics(AppMsg { data, app }) => {
+                (app, ExtMsg::Topics(AddressedMsg { remote_id, data }))
+            }
+            p2p::Messages::ProposeTopic(AppMsg { data, app }) => {
+                (app, ExtMsg::ProposeTopic(AddressedMsg { remote_id, data }))
+            }
+            p2p::Messages::Post(AppMsg { data, app }) => {
+                (app, ExtMsg::Post(AddressedMsg { remote_id, data }))
+            }
+            p2p::Messages::Read(AppMsg { data, app }) => {
+                (app, ExtMsg::Read(AddressedMsg { remote_id, data }))
+            }
+            p2p::Messages::Decline(AppMsg { data, app }) => {
+                (app, ExtMsg::Decline(AddressedMsg { remote_id, data }))
+            }
+            p2p::Messages::Accept(AppMsg { data, app }) => {
+                (app, ExtMsg::Accept(AddressedMsg { remote_id, data }))
+            }
+            other => return Err(other),
+        })
+    }
 }
 
 impl ExtMsg {

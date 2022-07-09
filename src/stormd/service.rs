@@ -22,7 +22,7 @@ use microservices::esb::{EndpointList, Error};
 use microservices::node::TryService;
 use storm::p2p::{Messages, STORM_P2P_UNMARSHALLER};
 use storm::StormApp;
-use storm_ext::ExtMsg;
+use storm_ext::{ExtMsg, StormExtMsg};
 use storm_rpc::{RpcMsg, ServiceId};
 
 use crate::bus::{BusMsg, CtlMsg, Endpoints, Responder, ServiceBus};
@@ -140,9 +140,11 @@ impl Runtime {
         }) = &message
         {
             let mesg = STORM_P2P_UNMARSHALLER.unmarshall(&**payload)?.deref().clone();
-            match &mesg {
+            match mesg.storm_ext_msg(remote_id) {
+                Ok((app, storm_msg)) => self.send_ext(endpoints, Some(app), storm_msg)?,
+
                 // Messages we process ourselves
-                Messages::ListApps => {
+                Err(Messages::ListApps) => {
                     self.send_p2p(
                         endpoints,
                         remote_id,
@@ -150,20 +152,17 @@ impl Runtime {
                     )?;
                 }
 
-                // Messages we forward to the remote peer
-                Messages::ActiveApps(_) => {}
-                Messages::ListTopics(_) => {}
-                Messages::AppTopics(_) => {}
-                Messages::ProposeTopic(_) => {}
-                Messages::Post(_) => {}
-                Messages::Read(_) => {}
-                Messages::Decline(_) => {}
-                Messages::Accept(_) => {}
+                // A remote peer described list of apps. We need to report that to a client.
+                Err(Messages::ActiveApps(_)) => {}
+
+                // These should be processed by transfer service
+                /*
                 Messages::PullContainer(_) => {}
                 Messages::PushContainer(_) => {}
                 Messages::Reject(_) => {}
                 Messages::PullChunk(_) => {}
                 Messages::PushChunk(_) => {}
+                 */
                 _ => {}
             }
         } else {
