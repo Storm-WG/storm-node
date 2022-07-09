@@ -25,9 +25,12 @@ extern crate serde_crate as serde;
 pub mod client;
 mod error;
 mod messages;
+mod service_id;
 
 pub use client::Client;
-pub use error::FailureCode;
+pub use error::{Error, FailureCode};
+pub(crate) use messages::BusMsg;
 pub use messages::{ContainerAddr, RpcMsg};
+pub use service_id::ServiceId;
 
 pub const STORM_NODE_RPC_ENDPOINT: &str = "0.0.0.0:64964";

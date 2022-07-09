@@ -903,9 +903,9 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.12.1"
+version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db0d4cf898abf0081f964436dc980e96670a0f36863e4b83aaacdb65c9d7ccc3"
+checksum = "607c8a29735385251a339424dd462993c0fed8fa09d378f259377df08c126022"
 
 [[package]]
 name = "heck"
@@ -1220,6 +1220,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "lnp_rpc"
+version = "0.8.0-beta.1"
+source = "git+https://github.com/LNP-WG/lnp-node#e6d31b2d5e9950024aec84d7f6a1c6f372b38519"
+dependencies = [
+ "amplify",
+ "bitcoin",
+ "colored",
+ "descriptor-wallet",
+ "internet2",
+ "lightning-invoice",
+ "lnp-core",
+ "lnpbp",
+ "log",
+ "microservices",
+ "serde 1.0.138",
+ "serde_with",
+ "serde_yaml",
+ "strict_encoding",
+ "zmq2",
+]
+
+[[package]]
 name = "lnpbp"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1299,9 +1321,9 @@ dependencies = [
 
 [[package]]
 name = "microservices"
-version = "0.8.1"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6830fd4968aa8c29a913996b1a2268eb65f31d68eb8fa4be6e850f03bc1d0808"
+checksum = "9538426c2bdf53b758a916f80c939cb1d7204d1f920da1251562d0266657a557"
 dependencies = [
  "amplify",
  "colored",
@@ -1927,9 +1949,9 @@ dependencies = [
 
 [[package]]
 name = "serde_yaml"
-version = "0.8.24"
+version = "0.8.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "707d15895415db6628332b737c838b88c598522e4dc70647e59b72312924aebc"
+checksum = "1ec0091e1f5aa338283ce049bd9dfefd55e1f168ac233e85c1ffe0038fb48cbe"
 dependencies = [
  "indexmap",
  "ryu",
@@ -2061,11 +2083,14 @@ dependencies = [
  "colored",
  "configure_me_codegen",
  "internet2",
- "lnp_rpc",
+ "lnp-core",
+ "lnp_rpc 0.8.0-beta.1 (git+https://github.com/LNP-WG/lnp-node)",
  "log",
  "microservices",
  "shellexpand",
+ "storm-core",
  "storm_rpc",
+ "strict_encoding",
 ]
 
 [[package]]
@@ -2118,7 +2143,7 @@ dependencies = [
  "env_logger",
  "internet2",
  "lnp2p",
- "lnp_rpc",
+ "lnp_rpc 0.8.0-beta.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log",
  "microservices",
  "nix",
@@ -2139,6 +2164,7 @@ dependencies = [
  "internet2",
  "log",
  "microservices",
+ "rand 0.8.5",
  "serde 1.0.138",
  "serde_with",
  "serde_yaml",
