@@ -2162,6 +2162,7 @@ version = "0.8.0-alpha.2"
 dependencies = [
  "amplify",
  "internet2",
+ "lnp2p",
  "log",
  "microservices",
  "rand 0.8.5",

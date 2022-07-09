@@ -17,8 +17,7 @@ use storm_ext::ExtMsg;
 use storm_rpc::RpcMsg;
 
 pub use self::ctl::CtlMsg;
-pub use self::services::{DaemonId, ServiceId};
-pub(crate) use self::services::{Endpoints, Responder, ServiceBus};
+pub(crate) use self::services::{DaemonId, Endpoints, Responder, ServiceBus};
 
 /// Service controller messages
 #[derive(Clone, Debug, Display, From, Api)]

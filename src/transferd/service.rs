@@ -17,10 +17,10 @@ use microservices::error::BootstrapError;
 use microservices::esb::{self, EndpointList, Error};
 use microservices::node::TryService;
 use rand::random;
-use storm_rpc::{ContainerAddr, RpcMsg};
+use storm_rpc::{ContainerAddr, RpcMsg, ServiceId};
 
 use super::State;
-use crate::bus::{BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus, ServiceId};
+use crate::bus::{BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus};
 use crate::{Config, DaemonError, LaunchError};
 
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {

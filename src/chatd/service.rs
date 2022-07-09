@@ -18,9 +18,9 @@ use microservices::esb::{self, EndpointList, Error};
 use microservices::node::TryService;
 use rand::random;
 use storm::StormApp;
-use storm_rpc::RpcMsg;
+use storm_rpc::{RpcMsg, ServiceId};
 
-use crate::bus::{BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus, ServiceId};
+use crate::bus::{BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus};
 use crate::{Config, DaemonError, LaunchError};
 
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {

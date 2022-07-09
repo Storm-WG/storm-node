@@ -11,9 +11,9 @@
 use internet2::presentation;
 use microservices::rpc::ServerError;
 use microservices::{esb, rpc};
-use storm_rpc::{FailureCode, RpcMsg};
+use storm_rpc::{FailureCode, RpcMsg, ServiceId};
 
-use crate::bus::{ServiceBus, ServiceId};
+use crate::bus::ServiceBus;
 use crate::transferd;
 
 #[derive(Clone, Debug, Display, Error, From)]

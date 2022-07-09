@@ -8,89 +8,21 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-use std::str::FromStr;
-
 use internet2::addr::NodeId;
 use internet2::TypedEnum;
 use lnp2p::bifrost;
-use lnp2p::bifrost::{BifrostApp, ChannelId};
-use lnp_rpc::{ClientId, OptionDetails, ServiceName};
+use lnp2p::bifrost::BifrostApp;
+use lnp_rpc::{ClientId, OptionDetails};
 use microservices::{esb, rpc};
 use storm::{p2p, StormApp};
 use storm_ext::ExtMsg;
-use storm_rpc::RpcMsg;
-use strict_encoding::{strict_deserialize, strict_serialize};
+use storm_rpc::{RpcMsg, ServiceId};
 
 use crate::bus::{BusMsg, CtlMsg};
 
 pub(crate) type Endpoints = esb::EndpointList<ServiceBus>;
 
 pub type DaemonId = u64;
-
-/// Identifiers of daemons participating in LNP Node
-#[derive(Clone, PartialEq, Eq, Hash, Debug, Display, From, StrictEncode, StrictDecode)]
-pub enum ServiceId {
-    #[display("stormd")]
-    #[strict_encoding(value = 0x24)] // This mimics Bifrost LNP storm service id
-    MsgApp(BifrostApp),
-
-    #[display("chapp<{0}>")]
-    #[strict_encoding(value = 0x24)]
-    ChannelApp(BifrostApp),
-
-    #[display("app<{0}>")]
-    #[strict_encoding(value = 0x41)]
-    StormApp(StormApp),
-
-    #[display("client<{0}>")]
-    #[strict_encoding(value = 2)]
-    Client(ClientId),
-
-    #[display("lnpd")]
-    #[strict_encoding(value = 0x20)]
-    Lnp,
-
-    #[display("peerd<biffrost, {0}>")]
-    #[from]
-    #[strict_encoding(value = 0x22)]
-    Peer(NodeId),
-
-    #[display("channel<{0:#x}>")]
-    #[from]
-    #[strict_encoding(value = 0x23)]
-    Channel(ChannelId),
-
-    #[display("tansferd<{0}>")]
-    #[strict_encoding(value = 0x42)]
-    Transfer(DaemonId),
-
-    #[display("other<{0}>")]
-    #[strict_encoding(value = 0xFF)]
-    Other(ServiceName),
-}
-
-impl ServiceId {
-    pub fn stormd() -> ServiceId { ServiceId::MsgApp(BifrostApp::Storm) }
-}
-
-impl esb::ServiceAddress for ServiceId {}
-
-impl From<ServiceId> for Vec<u8> {
-    fn from(daemon_id: ServiceId) -> Self {
-        strict_serialize(&daemon_id).expect("Memory-based encoding does not fail")
-    }
-}
-
-impl From<Vec<u8>> for ServiceId {
-    fn from(vec: Vec<u8>) -> Self {
-        strict_deserialize(&vec).unwrap_or_else(|_| {
-            ServiceId::Other(
-                ServiceName::from_str(&String::from_utf8_lossy(&vec))
-                    .expect("ClientName conversion never fails"),
-            )
-        })
-    }
-}
 
 /// Service buses used for inter-daemon communication
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Display)]
