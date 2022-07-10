@@ -12,6 +12,7 @@ use std::io;
 use std::io::BufRead;
 
 use amplify::IoError;
+use internet2::addr::PartialNodeAddr;
 use lnp::addr::LnpAddr;
 
 use crate::{Command, Opts};
@@ -41,17 +42,23 @@ impl Opts {
     ) -> Result<(), Error> {
         debug!("Performing {:?}", self.command);
         match self.command {
-            Command::ChatSend { peer } => {
-                lnp_client.connect(LnpAddr::bifrost(peer))?;
+            Command::ChatSend { connect, peer } => {
+                if let Some(addr) = connect {
+                    let remote_node = PartialNodeAddr { id: peer, addr };
+                    lnp_client.connect(LnpAddr::bifrost(remote_node))?;
+                }
                 let stdin = io::stdin();
                 for line in stdin.lock().lines() {
-                    storm_client.chat_tell(peer.id, line?)?;
+                    storm_client.chat_tell(peer, line?)?;
                 }
             }
-            Command::ChatListen { peer } => {
-                lnp_client.connect(LnpAddr::bifrost(peer))?;
+            Command::ChatListen { connect, peer } => {
+                if let Some(addr) = connect {
+                    let remote_node = PartialNodeAddr { id: peer, addr };
+                    lnp_client.connect(LnpAddr::bifrost(remote_node))?;
+                }
                 loop {
-                    let line = storm_client.chat_recv(peer.id)?;
+                    let line = storm_client.chat_recv(peer)?;
                     println!("> {}", line);
                 }
             }

@@ -38,6 +38,7 @@ _storm-cli() {
         case $line[1] in
             (chat-listen)
 _arguments "${_arguments_options[@]}" \
+'--connect=[Remote node address to force connection (re)establishment]:CONNECT: ' \
 '-S+[ZMQ socket for connecting Storm node RPC interface]:STORM_ENDPOINT: ' \
 '--storm=[ZMQ socket for connecting Storm node RPC interface]:STORM_ENDPOINT: ' \
 '-C+[ZMQ socket for chat daemon PUB/SUB API]:RADIO_ENDPOINT: ' \
@@ -48,11 +49,12 @@ _arguments "${_arguments_options[@]}" \
 '--help[Print help information]' \
 '*-v[Set verbosity level]' \
 '*--verbose[Set verbosity level]' \
-':peer:' \
+':peer -- Remote node id (public key):' \
 && ret=0
 ;;
 (chat-send)
 _arguments "${_arguments_options[@]}" \
+'--connect=[Remote node address to force connection (re)establishment]:CONNECT: ' \
 '-S+[ZMQ socket for connecting Storm node RPC interface]:STORM_ENDPOINT: ' \
 '--storm=[ZMQ socket for connecting Storm node RPC interface]:STORM_ENDPOINT: ' \
 '-C+[ZMQ socket for chat daemon PUB/SUB API]:RADIO_ENDPOINT: ' \
@@ -63,7 +65,7 @@ _arguments "${_arguments_options[@]}" \
 '--help[Print help information]' \
 '*-v[Set verbosity level]' \
 '*--verbose[Set verbosity level]' \
-':peer:' \
+':peer -- Remote node id (public key):' \
 && ret=0
 ;;
 (help)

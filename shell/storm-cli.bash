@@ -66,12 +66,16 @@ _storm-cli() {
             return 0
             ;;
         storm__cli__chat__listen)
-            opts="-h -S -C -L -v --help --storm --chat --lnp --verbose <PEER>"
+            opts="-h -S -C -L -v --connect --help --storm --chat --lnp --verbose <PEER>"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
             fi
             case "${prev}" in
+                --connect)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
                 --storm)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
@@ -104,12 +108,16 @@ _storm-cli() {
             return 0
             ;;
         storm__cli__chat__send)
-            opts="-h -S -C -L -v --help --storm --chat --lnp --verbose <PEER>"
+            opts="-h -S -C -L -v --connect --help --storm --chat --lnp --verbose <PEER>"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
             fi
             case "${prev}" in
+                --connect)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
                 --storm)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0

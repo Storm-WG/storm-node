@@ -39,6 +39,7 @@ Register-ArgumentCompleter -Native -CommandName 'storm-cli' -ScriptBlock {
             break
         }
         'storm-cli;chat-listen' {
+            [CompletionResult]::new('--connect', 'connect', [CompletionResultType]::ParameterName, 'Remote node address to force connection (re)establishment')
             [CompletionResult]::new('-S', 'S', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
             [CompletionResult]::new('--storm', 'storm', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
             [CompletionResult]::new('-C', 'C', [CompletionResultType]::ParameterName, 'ZMQ socket for chat daemon PUB/SUB API')
@@ -52,6 +53,7 @@ Register-ArgumentCompleter -Native -CommandName 'storm-cli' -ScriptBlock {
             break
         }
         'storm-cli;chat-send' {
+            [CompletionResult]::new('--connect', 'connect', [CompletionResultType]::ParameterName, 'Remote node address to force connection (re)establishment')
             [CompletionResult]::new('-S', 'S', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
             [CompletionResult]::new('--storm', 'storm', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
             [CompletionResult]::new('-C', 'C', [CompletionResultType]::ParameterName, 'ZMQ socket for chat daemon PUB/SUB API')

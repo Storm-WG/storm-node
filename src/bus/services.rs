@@ -135,7 +135,7 @@ where
         message: impl Into<ExtMsg>,
     ) -> Result<(), esb::Error<ServiceId>> {
         endpoints.send_to(
-            ServiceBus::Rpc,
+            ServiceBus::Storm,
             self.identity(),
             app_id.map(ServiceId::StormApp).unwrap_or(ServiceId::stormd()),
             BusMsg::Storm(message.into()),

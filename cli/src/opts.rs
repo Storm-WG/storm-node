@@ -8,7 +8,7 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-use internet2::addr::{PartialNodeAddr, ServiceAddr};
+use internet2::addr::{NodeId, PartialNodeAddr, PartialSocketAddr, ServiceAddr};
 use lnp_rpc::LNP_NODE_RPC_ENDPOINT;
 use storm_rpc::{CHATD_RPC_ENDPOINT, STORM_NODE_RPC_ENDPOINT};
 
@@ -70,8 +70,22 @@ pub struct Opts {
 #[derive(Subcommand, Clone, PartialEq, Eq, Debug, Display)]
 pub enum Command {
     #[display("chat-listen")]
-    ChatListen { peer: PartialNodeAddr },
+    ChatListen {
+        /// Remote node address to force connection (re)establishment
+        #[clap(long)]
+        connect: Option<PartialSocketAddr>,
+
+        /// Remote node id (public key).
+        peer: NodeId,
+    },
 
     #[display("chat-send")]
-    ChatSend { peer: PartialNodeAddr },
+    ChatSend {
+        /// Remote node address to force connection (re)establishment
+        #[clap(long)]
+        connect: Option<PartialSocketAddr>,
+
+        /// Remote node id (public key).
+        peer: NodeId,
+    },
 }
