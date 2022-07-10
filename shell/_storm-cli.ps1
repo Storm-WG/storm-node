@@ -21,8 +21,10 @@ Register-ArgumentCompleter -Native -CommandName 'storm-cli' -ScriptBlock {
 
     $completions = @(switch ($command) {
         'storm-cli' {
-            [CompletionResult]::new('-R', 'R', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
-            [CompletionResult]::new('--rpc', 'rpc', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
+            [CompletionResult]::new('-S', 'S', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
+            [CompletionResult]::new('--storm', 'storm', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
+            [CompletionResult]::new('-C', 'C', [CompletionResultType]::ParameterName, 'ZMQ socket for chat daemon PUB/SUB API')
+            [CompletionResult]::new('--chat', 'chat', [CompletionResultType]::ParameterName, 'ZMQ socket for chat daemon PUB/SUB API')
             [CompletionResult]::new('-L', 'L', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting LNP node RPC interface')
             [CompletionResult]::new('--lnp', 'lnp', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting LNP node RPC interface')
             [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Print help information')
@@ -37,8 +39,10 @@ Register-ArgumentCompleter -Native -CommandName 'storm-cli' -ScriptBlock {
             break
         }
         'storm-cli;chat-listen' {
-            [CompletionResult]::new('-R', 'R', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
-            [CompletionResult]::new('--rpc', 'rpc', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
+            [CompletionResult]::new('-S', 'S', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
+            [CompletionResult]::new('--storm', 'storm', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
+            [CompletionResult]::new('-C', 'C', [CompletionResultType]::ParameterName, 'ZMQ socket for chat daemon PUB/SUB API')
+            [CompletionResult]::new('--chat', 'chat', [CompletionResultType]::ParameterName, 'ZMQ socket for chat daemon PUB/SUB API')
             [CompletionResult]::new('-L', 'L', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting LNP node RPC interface')
             [CompletionResult]::new('--lnp', 'lnp', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting LNP node RPC interface')
             [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Print help information')
@@ -48,8 +52,10 @@ Register-ArgumentCompleter -Native -CommandName 'storm-cli' -ScriptBlock {
             break
         }
         'storm-cli;chat-send' {
-            [CompletionResult]::new('-R', 'R', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
-            [CompletionResult]::new('--rpc', 'rpc', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
+            [CompletionResult]::new('-S', 'S', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
+            [CompletionResult]::new('--storm', 'storm', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
+            [CompletionResult]::new('-C', 'C', [CompletionResultType]::ParameterName, 'ZMQ socket for chat daemon PUB/SUB API')
+            [CompletionResult]::new('--chat', 'chat', [CompletionResultType]::ParameterName, 'ZMQ socket for chat daemon PUB/SUB API')
             [CompletionResult]::new('-L', 'L', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting LNP node RPC interface')
             [CompletionResult]::new('--lnp', 'lnp', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting LNP node RPC interface')
             [CompletionResult]::new('-h', 'h', [CompletionResultType]::ParameterName, 'Print help information')
@@ -59,8 +65,10 @@ Register-ArgumentCompleter -Native -CommandName 'storm-cli' -ScriptBlock {
             break
         }
         'storm-cli;help' {
-            [CompletionResult]::new('-R', 'R', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
-            [CompletionResult]::new('--rpc', 'rpc', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
+            [CompletionResult]::new('-S', 'S', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
+            [CompletionResult]::new('--storm', 'storm', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting Storm node RPC interface')
+            [CompletionResult]::new('-C', 'C', [CompletionResultType]::ParameterName, 'ZMQ socket for chat daemon PUB/SUB API')
+            [CompletionResult]::new('--chat', 'chat', [CompletionResultType]::ParameterName, 'ZMQ socket for chat daemon PUB/SUB API')
             [CompletionResult]::new('-L', 'L', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting LNP node RPC interface')
             [CompletionResult]::new('--lnp', 'lnp', [CompletionResultType]::ParameterName, 'ZMQ socket for connecting LNP node RPC interface')
             [CompletionResult]::new('-v', 'v', [CompletionResultType]::ParameterName, 'Set verbosity level')

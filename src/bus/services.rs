@@ -42,6 +42,10 @@ pub(crate) enum ServiceBus {
     /// LN P2P (Bifrost) message bus
     #[display("MSG")]
     Msg,
+
+    /// Pub/sub bus used for chat daemon
+    #[display("CHAT")]
+    Chat,
 }
 
 impl esb::BusId for ServiceBus {

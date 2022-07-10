@@ -8,6 +8,10 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
+//! Storm node client usually calls storm application-specific services (chat,
+//! storage, search etC). Outside of that scope there are very small number of
+//! requests which may be done directly to the main storm daemon.
+
 #![recursion_limit = "256"]
 
 #[macro_use]
@@ -34,3 +38,4 @@ pub use messages::{ChatMsg, ContainerAddr, RpcMsg};
 pub use service_id::ServiceId;
 
 pub const STORM_NODE_RPC_ENDPOINT: &str = "0.0.0.0:64964";
+pub const CHATD_RPC_ENDPOINT: &str = "0.0.0.0:40940";

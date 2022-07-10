@@ -36,6 +36,9 @@ pub struct Config {
     /// ZMQ socket for Store service RPC.
     pub store_endpoint: ServiceAddr,
 
+    /// ZMQ socket for chat daemon PUB/SUB API.
+    pub chat_endpoint: ServiceAddr,
+
     /// Indicates whether deamons should be spawned as threads (true) or as child processes (false)
     pub threaded: bool,
 }

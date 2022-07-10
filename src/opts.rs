@@ -15,7 +15,7 @@ use internet2::addr::ServiceAddr;
 use microservices::shell::shell_setup;
 use store_rpc::STORED_RPC_ENDPOINT;
 use storm_ext::{STORM_NODE_DATA_DIR, STORM_NODE_EXT_ENDPOINT};
-use storm_rpc::STORM_NODE_RPC_ENDPOINT;
+use storm_rpc::{CHATD_RPC_ENDPOINT, STORM_NODE_RPC_ENDPOINT};
 
 pub const STORM_NODE_CTL_ENDPOINT: &str = "{data_dir}/ctl";
 
@@ -114,25 +114,45 @@ pub struct Opts {
 
     /// ZMQ socket name/address for Storm extensions interface, used to handle application-specific
     /// messages to and from extension daemons, connected to this bus.
+    ///
+    /// Socket can be either TCP address in form of `<ipv4 | ipv6>:<port>` – or a path
+    /// to an IPC file.
     #[clap(
         short = 'E',
         long,
         env = "STORM_NODE_EXT_ENDPOINT",
         value_hint = ValueHint::FilePath,
-        default_value = STORM_NODE_EXT_ENDPOINT
+        default_value = STORM_NODE_EXT_ENDPOINT,
+        value_hint = ValueHint::FilePath
     )]
     pub ext_endpoint: ServiceAddr,
 
     /// ZMQ socket for connecting storage daemon.
+    ///
+    /// Socket can be either TCP address in form of `<ipv4 | ipv6>:<port>` – or a path
+    /// to an IPC file.
     #[clap(
         short = 'S',
-        long = "store",
+        long,
         global = true,
         env = "STORED_RPC_ENDPOINT",
         default_value = STORED_RPC_ENDPOINT,
         value_hint = ValueHint::FilePath
     )]
     pub store_endpoint: ServiceAddr,
+
+    /// ZMQ socket for chat daemon PUB/SUB API.
+    ///
+    /// Socket can be either TCP address in form of `<ipv4 | ipv6>:<port>` – or a path
+    /// to an IPC file.
+    #[clap(
+        short = 'C',
+        long,
+        global = true,
+        env = "CHATD_RPC_ENDPOINT",
+        default_value = CHATD_RPC_ENDPOINT,
+    )]
+    pub chat_endpoint: ServiceAddr,
 
     /// Spawn daemons as threads and not processes
     #[clap(short = 'T', long = "threaded")]
@@ -148,6 +168,7 @@ impl Opts {
                 &mut self.ctl_endpoint,
                 &mut self.rpc_endpoint,
                 &mut self.ext_endpoint,
+                &mut self.chat_endpoint,
             ],
             &mut self.data_dir,
             &[],

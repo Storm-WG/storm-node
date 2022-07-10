@@ -28,7 +28,9 @@ _stormd() {
 '-E+[ZMQ socket name/address for Storm extensions interface, used to handle application-specific messages to and from extension daemons, connected to this bus]:EXT_ENDPOINT:_files' \
 '--ext-endpoint=[ZMQ socket name/address for Storm extensions interface, used to handle application-specific messages to and from extension daemons, connected to this bus]:EXT_ENDPOINT:_files' \
 '-S+[ZMQ socket for connecting storage daemon]:STORE_ENDPOINT:_files' \
-'--store=[ZMQ socket for connecting storage daemon]:STORE_ENDPOINT:_files' \
+'--store-endpoint=[ZMQ socket for connecting storage daemon]:STORE_ENDPOINT:_files' \
+'-C+[ZMQ socket for chat daemon PUB/SUB API]:CHAT_ENDPOINT: ' \
+'--chat-endpoint=[ZMQ socket for chat daemon PUB/SUB API]:CHAT_ENDPOINT: ' \
 '-h[Print help information]' \
 '--help[Print help information]' \
 '-V[Print version information]' \

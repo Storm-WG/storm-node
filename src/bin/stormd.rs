@@ -36,6 +36,7 @@ fn main() -> Result<(), BootstrapError<LaunchError>> {
         ctl_endpoint: opts.shared.ctl_endpoint,
         threaded: opts.shared.threaded_daemons,
         store_endpoint: opts.shared.store_endpoint,
+        chat_endpoint: opts.shared.chat_endpoint,
     };
     trace!("Daemon configuration: {:?}", config);
     debug!("MSG socket {}", config.msg_endpoint);
@@ -43,6 +44,7 @@ fn main() -> Result<(), BootstrapError<LaunchError>> {
     debug!("RPC socket {}", config.rpc_endpoint);
     debug!("STORM socket {}", config.ext_endpoint);
     debug!("STORE socket {}", config.store_endpoint);
+    debug!("CHAT socket {}", config.chat_endpoint);
 
     /*
     use self::internal::ResultExt;

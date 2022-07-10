@@ -28,17 +28,25 @@ _storm-cli() {
 
     case "${cmd}" in
         storm__cli)
-            opts="-h -V -R -L -v --help --version --rpc --lnp --verbose chat-listen chat-send help"
+            opts="-h -V -S -C -L -v --help --version --storm --chat --lnp --verbose chat-listen chat-send help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
             fi
             case "${prev}" in
-                --rpc)
+                --storm)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                -R)
+                -S)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --chat)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -C)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
@@ -58,17 +66,25 @@ _storm-cli() {
             return 0
             ;;
         storm__cli__chat__listen)
-            opts="-h -R -L -v --help --rpc --lnp --verbose <PEER>"
+            opts="-h -S -C -L -v --help --storm --chat --lnp --verbose <PEER>"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
             fi
             case "${prev}" in
-                --rpc)
+                --storm)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                -R)
+                -S)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --chat)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -C)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
@@ -88,17 +104,25 @@ _storm-cli() {
             return 0
             ;;
         storm__cli__chat__send)
-            opts="-h -R -L -v --help --rpc --lnp --verbose <PEER>"
+            opts="-h -S -C -L -v --help --storm --chat --lnp --verbose <PEER>"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
             fi
             case "${prev}" in
-                --rpc)
+                --storm)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                -R)
+                -S)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --chat)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -C)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
@@ -118,17 +142,25 @@ _storm-cli() {
             return 0
             ;;
         storm__cli__help)
-            opts="-R -L -v --rpc --lnp --verbose <SUBCOMMAND>..."
+            opts="-S -C -L -v --storm --chat --lnp --verbose <SUBCOMMAND>..."
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
             fi
             case "${prev}" in
-                --rpc)
+                --storm)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                -R)
+                -S)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --chat)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -C)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;

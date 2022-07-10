@@ -36,21 +36,26 @@ fn main() {
     LogLevel::from_verbosity_flag_count(opts.verbose).apply();
     trace!("Command-line arguments: {:#?}", &opts);
 
-    let connect = &mut opts.connect;
-    if let ServiceAddr::Ipc(ref mut path) = connect {
+    let storm_endpoint = &mut opts.storm_endpoint;
+    let radio_endpoint = &mut opts.radio_endpoint;
+    if let ServiceAddr::Ipc(ref mut path) = storm_endpoint {
         *path = shellexpand::tilde(path).to_string();
     }
-    debug!("STORM RPC socket {}", connect);
-    let mut storm_client = storm_rpc::Client::with(connect.clone(), s!("storm-cli"))
-        .expect("Error initializing Storm client");
+    if let ServiceAddr::Ipc(ref mut path) = radio_endpoint {
+        *path = shellexpand::tilde(path).to_string();
+    }
+    debug!("STORM RPC socket {}", storm_endpoint);
+    let mut storm_client =
+        storm_rpc::Client::with(storm_endpoint.clone(), radio_endpoint.clone(), s!("storm-cli"))
+            .expect("Error initializing Storm client");
 
-    let connect = &mut opts.lnp_rpc;
-    if let ServiceAddr::Ipc(ref mut path) = connect {
+    let lnp_endpoint = &mut opts.lnp_endpoint;
+    if let ServiceAddr::Ipc(ref mut path) = lnp_endpoint {
         *path = shellexpand::tilde(path).to_string();
     }
-    debug!("LNP RPC socket {}", connect);
+    debug!("LNP RPC socket {}", lnp_endpoint);
     let mut lnp_client =
-        lnp_rpc::Client::with(connect.clone()).expect("Error initializing LNP client");
+        lnp_rpc::Client::with(lnp_endpoint.clone()).expect("Error initializing LNP client");
 
     trace!("Executing command: {}", opts.command);
     opts.exec(&mut storm_client, &mut lnp_client)

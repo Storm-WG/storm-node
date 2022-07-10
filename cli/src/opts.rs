@@ -10,7 +10,7 @@
 
 use internet2::addr::{PartialNodeAddr, ServiceAddr};
 use lnp_rpc::LNP_NODE_RPC_ENDPOINT;
-use storm_rpc::STORM_NODE_RPC_ENDPOINT;
+use storm_rpc::{CHATD_RPC_ENDPOINT, STORM_NODE_RPC_ENDPOINT};
 
 /// Command-line tool for working with store daemon
 #[derive(Parser, Clone, PartialEq, Eq, Debug)]
@@ -20,23 +20,32 @@ pub struct Opts {
     ///
     /// Socket can be either TCP address in form of `<ipv4 | ipv6>:<port>` – or a path
     /// to an IPC file.
-    ///
-    /// Defaults to `127.0.0.1:64964`.
     #[clap(
-        short = 'R',
-        long = "rpc",
+        short = 'S',
+        long = "storm",
         global = true,
         default_value = STORM_NODE_RPC_ENDPOINT,
         env = "STORM_NODE_RPC_ENDPOINT"
     )]
-    pub connect: ServiceAddr,
+    pub storm_endpoint: ServiceAddr,
+
+    /// ZMQ socket for chat daemon PUB/SUB API.
+    ///
+    /// Socket can be either TCP address in form of `<ipv4 | ipv6>:<port>` – or a path
+    /// to an IPC file.
+    #[clap(
+        short = 'C',
+        long = "chat",
+        global = true,
+        env = "CHATD_RPC_ENDPOINT",
+        default_value = CHATD_RPC_ENDPOINT,
+    )]
+    pub radio_endpoint: ServiceAddr,
 
     /// ZMQ socket for connecting LNP node RPC interface.
     ///
     /// Socket can be either TCP address in form of `<ipv4 | ipv6>:<port>` – or a path
     /// to an IPC file.
-    ///
-    /// Defaults to `127.0.0.1:62962`.
     #[clap(
         short = 'L',
         long = "lnp",
@@ -44,7 +53,7 @@ pub struct Opts {
         default_value = LNP_NODE_RPC_ENDPOINT,
         env = "LNP_NODE_RPC_ENDPOINT"
     )]
-    pub lnp_rpc: ServiceAddr,
+    pub lnp_endpoint: ServiceAddr,
 
     /// Set verbosity level.
     ///

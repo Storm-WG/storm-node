@@ -19,36 +19,53 @@ use storm::StormApp;
 use crate::messages::ChatMsg;
 use crate::{BusMsg, Error, RpcMsg, ServiceId};
 
-// We have just a single service bus (RPC), so we can use any id
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Default, Display)]
-#[display("STORMRPC")]
-struct RpcBus;
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display)]
+enum Bus {
+    /// RPC interface, from client to node
+    #[display("RPC")]
+    Rpc,
 
-impl BusId for RpcBus {
+    /// Pub/sub bus used for chat daemon
+    #[display("CHAT")]
+    Chat,
+}
+
+impl BusId for Bus {
     type Address = ServiceId;
 }
 
-type Bus = esb::EndpointList<RpcBus>;
+type Endpoints = esb::EndpointList<Bus>;
 
 #[repr(C)]
 pub struct Client {
     client_id: ClientId,
     user_agent: String,
     response_queue: Vec<(RpcMsg, ServiceId)>,
-    esb: esb::Controller<RpcBus, BusMsg, Handler>,
+    esb: esb::Controller<Bus, BusMsg, Handler>,
 }
 
 impl Client {
-    pub fn with(connect: ServiceAddr, user_agent: String) -> Result<Self, Error> {
-        debug!("RPC socket {}", connect);
+    pub fn with(
+        rpc_endpoint: ServiceAddr,
+        chat_endpoint: ServiceAddr,
+        user_agent: String,
+    ) -> Result<Self, Error> {
+        debug!("RPC socket {}", rpc_endpoint);
 
         debug!("Setting up RPC client...");
         let client_id = rand::random();
-        let bus_config =
-            esb::BusConfig::with_addr(connect, ZmqSocketType::RouterConnect, Some(ServiceId::Lnp));
         let esb = esb::Controller::with(
             map! {
-                RpcBus => bus_config
+                Bus::Rpc => esb::BusConfig::with_addr(
+                    rpc_endpoint,
+                    ZmqSocketType::RouterConnect,
+                    Some(ServiceId::stormd()),
+                ),
+                Bus::Chat => esb::BusConfig::with_addr(
+                    chat_endpoint,
+                    ZmqSocketType::Sub,
+                    Some(ServiceId::stormd()),
+                )
             },
             Handler {
                 identity: ServiceId::Client(client_id),
@@ -71,7 +88,7 @@ impl Client {
     fn request(&mut self, req: impl Into<RpcMsg>, service_id: ServiceId) -> Result<(), Error> {
         let req = req.into();
         debug!("Executing {}", req);
-        self.esb.send_to(RpcBus, service_id, BusMsg::Rpc(req))?;
+        self.esb.send_to(Bus::Rpc, service_id, BusMsg::Rpc(req))?;
         Ok(())
     }
 
@@ -112,7 +129,7 @@ pub struct Handler {
 }
 
 // Not used in clients
-impl esb::Handler<RpcBus> for Handler {
+impl esb::Handler<Bus> for Handler {
     type Request = BusMsg;
     type Error = esb::Error<ServiceId>;
 
@@ -120,8 +137,8 @@ impl esb::Handler<RpcBus> for Handler {
 
     fn handle(
         &mut self,
-        _: &mut Bus,
-        _: RpcBus,
+        _: &mut Endpoints,
+        _: Bus,
         _: ServiceId,
         _: BusMsg,
     ) -> Result<(), Self::Error> {
@@ -129,7 +146,11 @@ impl esb::Handler<RpcBus> for Handler {
         Ok(())
     }
 
-    fn handle_err(&mut self, _: &mut Bus, err: esb::Error<ServiceId>) -> Result<(), Self::Error> {
+    fn handle_err(
+        &mut self,
+        _: &mut Endpoints,
+        err: esb::Error<ServiceId>,
+    ) -> Result<(), Self::Error> {
         // We simply propagate the error since it already has been reported
         Err(err.into())
     }
