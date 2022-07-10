@@ -25,6 +25,12 @@ pub(crate) enum BusMsg {
     #[display(inner)]
     #[from]
     Rpc(RpcMsg),
+
+    /// Chat SUB/PUB requests
+    #[api(type = 0x81)]
+    #[display(inner)]
+    #[from]
+    Chat(RadioMsg),
 }
 
 impl rpc::Request for BusMsg {}
@@ -46,10 +52,7 @@ pub enum RpcMsg {
      */
     /// Send a chat message to the remote peer. The peer must be connected.
     #[display("send_chat({0})")]
-    SendChatMsg(ChatMsg),
-
-    #[display("recv_chat({0})")]
-    ReceivedChatMsg(ChatMsg),
+    SendChatMsg(ChatBulb),
 
     #[display("send({0})")]
     Send(ContainerAddr),
@@ -71,6 +74,15 @@ pub enum RpcMsg {
     Failure(rpc::Failure<FailureCode>),
 }
 
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Display, From)]
+#[derive(NetworkEncode, NetworkDecode)]
+#[display(inner)]
+pub enum RadioMsg {
+    #[display("recv_chat({0})")]
+    #[from]
+    Received(ChatBulb),
+}
+
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug, Display)]
 #[derive(NetworkEncode, NetworkDecode)]
 #[display("{container_id}~{remote_id}")]
@@ -83,7 +95,7 @@ pub struct ContainerAddr {
 #[derive(Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug, Display)]
 #[derive(NetworkEncode, NetworkDecode)]
 #[display("{remote_id}: {text}")]
-pub struct ChatMsg {
+pub struct ChatBulb {
     pub remote_id: NodeId,
     pub text: String,
 }

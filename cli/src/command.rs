@@ -50,7 +50,8 @@ impl Opts {
             }
             Command::ChatListen { peer } => {
                 lnp_client.connect(LnpAddr::bifrost(peer))?;
-                for line in storm_client.chat_recv(peer.id)? {
+                loop {
+                    let line = storm_client.chat_recv(peer.id)?;
                     println!("> {}", line);
                 }
             }

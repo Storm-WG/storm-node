@@ -13,10 +13,9 @@ use std::time::Duration;
 
 use internet2::addr::{NodeId, ServiceAddr};
 use internet2::ZmqSocketType;
-use microservices::esb::{self, BusId, ClientId};
-use storm::StormApp;
+use microservices::esb::{self, BusId, ClientId, PollItem};
 
-use crate::messages::ChatMsg;
+use crate::messages::{ChatBulb, RadioMsg};
 use crate::{BusMsg, Error, RpcMsg, ServiceId};
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display)]
@@ -40,7 +39,7 @@ type Endpoints = esb::EndpointList<Bus>;
 pub struct Client {
     client_id: ClientId,
     user_agent: String,
-    response_queue: Vec<(RpcMsg, ServiceId)>,
+    response_queue: Vec<PollItem<Bus, BusMsg>>,
     esb: esb::Controller<Bus, BusMsg, Handler>,
 }
 
@@ -92,16 +91,14 @@ impl Client {
         Ok(())
     }
 
-    fn response(&mut self) -> Result<(RpcMsg, ServiceId), Error> {
+    fn response(&mut self) -> Result<PollItem<Bus, BusMsg>, Error> {
         loop {
-            if let Some((resp, service_id)) = self.response_queue.pop() {
-                trace!("Got response {:?} from {}", resp, service_id);
-                return Ok((resp, service_id));
+            if let Some(poll) = self.response_queue.pop() {
+                trace!("Got response {} from {} via {}", poll.request, poll.source, poll.bus_id);
+                return Ok(poll);
             } else {
                 for poll in self.esb.recv_poll()? {
-                    match poll.request {
-                        BusMsg::Rpc(msg) => self.response_queue.push((msg, poll.source)),
-                    }
+                    self.response_queue.push(poll);
                 }
             }
         }
@@ -110,16 +107,18 @@ impl Client {
 
 impl Client {
     pub fn chat_tell(&mut self, remote_id: NodeId, text: String) -> Result<(), Error> {
-        self.request(RpcMsg::SendChatMsg(ChatMsg { remote_id, text }), ServiceId::chatd())
+        self.request(RpcMsg::SendChatMsg(ChatBulb { remote_id, text }), ServiceId::chatd())
     }
 
-    pub fn chat_recv(&mut self, from_remote_id: NodeId) -> Result<Result<String, RpcMsg>, Error> {
-        match self.response()? {
-            (
-                RpcMsg::ReceivedChatMsg(ChatMsg { remote_id, text }),
-                ServiceId::StormApp(StormApp::Chat),
-            ) if remote_id == from_remote_id => Ok(Ok(text)),
-            (msg, _) => Ok(Err(msg)),
+    pub fn chat_recv(&mut self, from_remote_id: NodeId) -> Result<String, Error> {
+        let poll = self.response()?;
+        match poll.request {
+            BusMsg::Chat(RadioMsg::Received(ChatBulb { remote_id, text }))
+                if remote_id == from_remote_id =>
+            {
+                Ok(text)
+            }
+            _ => Err(Error::UnexpectedServerResponse),
         }
     }
 }

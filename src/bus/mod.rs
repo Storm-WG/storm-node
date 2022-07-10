@@ -14,7 +14,7 @@ mod ctl;
 use lnp2p::bifrost;
 use microservices::rpc;
 use storm_ext::ExtMsg;
-use storm_rpc::RpcMsg;
+use storm_rpc::{RadioMsg, RpcMsg};
 
 pub use self::ctl::CtlMsg;
 pub(crate) use self::services::{DaemonId, Endpoints, Responder, ServiceBus};
@@ -46,6 +46,12 @@ pub(crate) enum BusMsg {
     #[display(inner)]
     #[from]
     Ctl(CtlMsg),
+
+    /// Chat SUB/PUB requests
+    #[api(type = 0x81)]
+    #[display(inner)]
+    #[from]
+    Chat(RadioMsg),
 }
 
 impl rpc::Request for BusMsg {}

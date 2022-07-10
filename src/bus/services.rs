@@ -16,7 +16,7 @@ use lnp_rpc::{ClientId, OptionDetails};
 use microservices::{esb, rpc};
 use storm::{p2p, StormApp};
 use storm_ext::ExtMsg;
-use storm_rpc::{RpcMsg, ServiceId};
+use storm_rpc::{RadioMsg, RpcMsg, ServiceId};
 
 use crate::bus::{BusMsg, CtlMsg};
 
@@ -139,6 +139,21 @@ where
             self.identity(),
             app_id.map(ServiceId::StormApp).unwrap_or(ServiceId::stormd()),
             BusMsg::Storm(message.into()),
+        )
+    }
+
+    #[inline]
+    fn send_radio(
+        &self,
+        endpoints: &mut Endpoints,
+        message: impl Into<RadioMsg>,
+    ) -> Result<(), esb::Error<ServiceId>> {
+        endpoints.send_to(
+            ServiceBus::Chat,
+            self.identity(),
+            // Not sure this will work though
+            ServiceId::stormd(),
+            BusMsg::Chat(message.into()),
         )
     }
 }

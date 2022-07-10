@@ -16,12 +16,11 @@ use lnp_rpc::ClientId;
 use microservices::error::BootstrapError;
 use microservices::esb::{self, EndpointList, Error};
 use microservices::node::TryService;
-use rand::random;
 use storm::{Mesg, StormApp};
 use storm_ext::{AddressedMsg, ExtMsg};
-use storm_rpc::{ChatMsg, RpcMsg, ServiceId};
+use storm_rpc::{ChatBulb, RpcMsg, ServiceId};
 
-use crate::bus::{BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus};
+use crate::bus::{BusMsg, CtlMsg, Endpoints, Responder, ServiceBus};
 use crate::{Config, DaemonError, LaunchError};
 
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
@@ -68,7 +67,6 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
 }
 
 pub struct Runtime {
-    pub(super) id: DaemonId,
     pub(super) store: store_rpc::Client,
 }
 
@@ -78,11 +76,9 @@ impl Runtime {
 
         let store = store_rpc::Client::with(&config.store_endpoint).map_err(LaunchError::from)?;
 
-        let id = random();
-
         info!("Chat runtime started successfully");
 
-        Ok(Self { id, store })
+        Ok(Self { store })
     }
 }
 
@@ -136,16 +132,16 @@ impl esb::Handler<ServiceBus> for Runtime {
 impl Runtime {
     fn handle_storm(
         &mut self,
-        _endpoints: &mut Endpoints,
+        endpoints: &mut Endpoints,
         message: ExtMsg,
     ) -> Result<(), DaemonError> {
         match message {
             ExtMsg::Post(AddressedMsg { remote_id, data }) => {
-                let chat_msg = ChatMsg {
+                let chat_msg = ChatBulb {
                     remote_id,
                     text: String::from_utf8_lossy(&data.body).to_string(),
                 };
-                RpcMsg::ReceivedChatMsg(chat_msg);
+                self.send_radio(endpoints, chat_msg)?;
             }
             wrong_msg => {
                 error!("Request is not supported by the Storm interface");
@@ -163,7 +159,7 @@ impl Runtime {
         message: RpcMsg,
     ) -> Result<(), DaemonError> {
         match message {
-            RpcMsg::SendChatMsg(ChatMsg { remote_id, text }) => {
+            RpcMsg::SendChatMsg(ChatBulb { remote_id, text }) => {
                 let addressed_msg = AddressedMsg {
                     remote_id,
                     data: Mesg {
