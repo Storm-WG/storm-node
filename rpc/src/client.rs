@@ -60,10 +60,10 @@ impl Client {
                     ZmqSocketType::RouterConnect,
                     Some(ServiceId::stormd()),
                 ),
-                Bus::Chat => esb::BusConfig::with_addr(
+                Bus::Chat => esb::BusConfig::with_subscription(
                     chat_endpoint,
                     ZmqSocketType::Sub,
-                    Some(ServiceId::stormd()),
+                    None,
                 )
             },
             Handler {

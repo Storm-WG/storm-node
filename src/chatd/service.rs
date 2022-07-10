@@ -51,7 +51,7 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
                 ZmqSocketType::RouterConnect,
                 Some(ServiceId::stormd())
             ),
-            ServiceBus::Chat => esb::BusConfig::with_addr(
+            ServiceBus::Chat => esb::BusConfig::with_subscription(
                 chat_endpoint,
                 ZmqSocketType::Pub,
                 None
