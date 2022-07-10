@@ -23,6 +23,14 @@ name = "storm_node"
 name = "stormd"
 required-features = ["server"]
 
+[[bin]]
+name = "chatd"
+required-features = ["server"]
+
+[[bin]]
+name = "transferd"
+required-features = ["server"]
+
 [dependencies]
 # LNP/BP crates
 amplify = "3.12.1"

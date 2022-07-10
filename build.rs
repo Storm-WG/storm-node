@@ -22,12 +22,20 @@ pub mod opts {
 pub mod stormd {
     include!("src/stormd/opts.rs");
 }
+pub mod transferd {
+    include!("src/transferd/opts.rs");
+}
+pub mod chatd {
+    include!("src/chatd/opts.rs");
+}
 
 fn main() -> Result<(), configure_me_codegen::Error> {
     let outdir = "./shell";
 
     fs::create_dir_all(outdir).expect("failed to create shell dir");
-    for app in [stormd::Opts::command()].iter_mut() {
+    for app in
+        [stormd::Opts::command(), transferd::Opts::command(), chatd::Opts::command()].iter_mut()
+    {
         let name = app.get_name().to_string();
         generate_to(Bash, app, &name, &outdir)?;
         generate_to(PowerShell, app, &name, &outdir)?;
