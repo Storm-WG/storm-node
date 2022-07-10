@@ -56,7 +56,7 @@ pub fn run(config: Config<super::Config>) -> Result<(), BootstrapError<LaunchErr
             ),
             ServiceBus::Rpc => esb::BusConfig::with_addr(
                 rpc_endpoint,
-                ZmqSocketType::Rep,
+                ZmqSocketType::RouterBind,
                 None
             )
         },

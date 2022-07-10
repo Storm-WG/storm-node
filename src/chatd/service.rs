@@ -88,7 +88,7 @@ impl esb::Handler<ServiceBus> for Runtime {
     type Request = BusMsg;
     type Error = DaemonError;
 
-    fn identity(&self) -> ServiceId { ServiceId::StormApp(StormApp::Chat) }
+    fn identity(&self) -> ServiceId { ServiceId::chatd() }
 
     fn on_ready(&mut self, endpoints: &mut EndpointList<ServiceBus>) -> Result<(), Self::Error> {
         thread::sleep(Duration::from_millis(100));
