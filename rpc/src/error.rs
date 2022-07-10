@@ -22,11 +22,14 @@ pub enum FailureCode {
     /// Encoding
     Encoding = 0x02,
 
-    Esb = 0x03,
+    /// Launching service
+    Launch = 0x03,
 
-    UnexpectedRequest = 0x04,
+    Esb = 0x10,
 
-    TransferAutomation = 0x10,
+    UnexpectedRequest = 0x11,
+
+    TransferAutomation = 0x20,
 }
 
 impl Display for FailureCode {

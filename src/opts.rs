@@ -8,6 +8,7 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
+use std::fmt::Debug;
 use std::path::PathBuf;
 
 use clap::{Parser, ValueHint};
@@ -20,6 +21,18 @@ use storm_rpc::{CHATD_RPC_ENDPOINT, STORM_NODE_RPC_ENDPOINT};
 pub const STORM_NODE_CTL_ENDPOINT: &str = "{data_dir}/ctl";
 
 pub const STORM_NODE_CONFIG: &str = "{data_dir}/stormd.toml";
+
+/// Marker trait for daemon-specific options
+pub trait Options: Clone + Eq + Debug {
+    /// Daemon-specific configuration extension
+    type Conf;
+
+    /// Returns shared part of options
+    fn shared(&self) -> &Opts;
+
+    /// Constructs daemon-specific configuration object
+    fn config(&self) -> Self::Conf;
+}
 
 /// Command-line arguments
 #[derive(Parser)]

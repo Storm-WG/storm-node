@@ -17,8 +17,8 @@ extern crate log;
 
 use clap::Parser;
 use microservices::error::BootstrapError;
-use storm_node::stormd::Opts;
-use storm_node::{stormd, Config, LaunchError};
+use storm_node::chatd::Opts;
+use storm_node::{transferd, Config, LaunchError};
 
 fn main() -> Result<(), BootstrapError<LaunchError>> {
     println!("transfer: container transfer microservice");
@@ -28,23 +28,11 @@ fn main() -> Result<(), BootstrapError<LaunchError>> {
     opts.process();
     trace!("Processed arguments: {:?}", opts);
 
-    let config = Config {
-        data_dir: opts.shared.data_dir,
-        rpc_endpoint: opts.shared.rpc_endpoint,
-        msg_endpoint: opts.shared.msg_endpoint,
-        ext_endpoint: opts.shared.ext_endpoint,
-        ctl_endpoint: opts.shared.ctl_endpoint,
-        threaded: opts.shared.threaded_daemons,
-        store_endpoint: opts.shared.store_endpoint,
-        chat_endpoint: opts.shared.chat_endpoint,
-    };
+    let config: Config = opts.clone().into();
     trace!("Daemon configuration: {:?}", config);
-    debug!("MSG socket {}", config.msg_endpoint);
     debug!("CTL socket {}", config.ctl_endpoint);
     debug!("RPC socket {}", config.rpc_endpoint);
-    debug!("STORM socket {}", config.ext_endpoint);
     debug!("STORE socket {}", config.store_endpoint);
-    debug!("CHAT socket {}", config.chat_endpoint);
 
     /*
     use self::internal::ResultExt;
@@ -56,7 +44,7 @@ fn main() -> Result<(), BootstrapError<LaunchError>> {
      */
 
     debug!("Starting runtime ...");
-    stormd::run(config).expect("running transferd runtime");
+    transferd::run(config).expect("running transferd runtime");
 
     unreachable!()
 }

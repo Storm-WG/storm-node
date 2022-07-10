@@ -26,9 +26,10 @@ use storm_ext::{ExtMsg, StormExtMsg};
 use storm_rpc::{RpcMsg, ServiceId};
 
 use crate::bus::{BusMsg, CtlMsg, Endpoints, Responder, ServiceBus};
+use crate::stormd::Daemon;
 use crate::{Config, DaemonError, LaunchError};
 
-pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
+pub fn run(config: Config<super::Config>) -> Result<(), BootstrapError<LaunchError>> {
     let msg_endpoint = config.msg_endpoint.clone();
     let rpc_endpoint = config.rpc_endpoint.clone();
     let ctl_endpoint = config.ctl_endpoint.clone();
@@ -69,17 +70,19 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
 }
 
 pub struct Runtime {
+    pub(super) config: Config<super::Config>,
     registered_apps: BTreeSet<StormApp>,
 }
 
 impl Runtime {
-    pub fn init(config: Config) -> Result<Self, BootstrapError<LaunchError>> {
+    pub fn init(config: Config<super::Config>) -> Result<Self, BootstrapError<LaunchError>> {
         // debug!("Initializing storage provider {:?}", config.storage_conf());
         // let storage = storage::FileDriver::with(config.storage_conf())?;
 
         info!("Stormd runtime started successfully");
 
         Ok(Self {
+            config,
             registered_apps: empty!(),
         })
     }
@@ -92,6 +95,15 @@ impl esb::Handler<ServiceBus> for Runtime {
     type Error = DaemonError;
 
     fn identity(&self) -> ServiceId { ServiceId::stormd() }
+
+    fn on_ready(&mut self, _senders: &mut Endpoints) -> Result<(), Self::Error> {
+        if self.config.ext.run_chat {
+            info!("Starting chat daemon...");
+            let config = Config::with(self.config.clone(), ());
+            self.launch_daemon(Daemon::Chatd, config)?;
+        }
+        Ok(())
+    }
 
     fn handle(
         &mut self,
@@ -184,8 +196,6 @@ impl Runtime {
                 return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg));
             }
         }
-
-        Ok(())
     }
 
     fn handle_ctl(

@@ -9,9 +9,13 @@
 // If not, see <https://opensource.org/licenses/MIT>.
 
 mod service;
+pub(self) mod daemons;
 #[cfg(feature = "server")]
 mod opts;
+mod config;
 
+pub use config::Config;
+pub use daemons::Daemon;
 #[cfg(feature = "server")]
 pub use opts::Opts;
 pub use service::{run, Runtime};

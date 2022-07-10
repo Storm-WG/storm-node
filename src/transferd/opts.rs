@@ -10,7 +10,7 @@
 
 use clap::Parser;
 
-use crate::opts::Opts as SharedOpts;
+use crate::opts::{Options, Opts as SharedOpts};
 
 /// Command-line arguments
 #[derive(Parser)]
@@ -21,6 +21,14 @@ pub struct Opts {
     /// command-line args or environment variables
     #[clap(flatten)]
     pub shared: SharedOpts,
+}
+
+impl Options for Opts {
+    type Conf = ();
+
+    fn shared(&self) -> &crate::opts::Opts { &self.shared }
+
+    fn config(&self) -> Self::Conf { () }
 }
 
 impl Opts {

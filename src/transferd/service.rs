@@ -154,7 +154,5 @@ impl Runtime {
                 return Err(DaemonError::wrong_esb_msg(ServiceBus::Ctl, &wrong_msg));
             }
         }
-
-        Ok(())
     }
 }

@@ -28,16 +28,7 @@ fn main() -> Result<(), BootstrapError<LaunchError>> {
     opts.process();
     trace!("Processed arguments: {:?}", opts);
 
-    let config = Config {
-        data_dir: opts.shared.data_dir,
-        rpc_endpoint: opts.shared.rpc_endpoint,
-        msg_endpoint: opts.shared.msg_endpoint,
-        ext_endpoint: opts.shared.ext_endpoint,
-        ctl_endpoint: opts.shared.ctl_endpoint,
-        threaded: opts.shared.threaded_daemons,
-        store_endpoint: opts.shared.store_endpoint,
-        chat_endpoint: opts.shared.chat_endpoint,
-    };
+    let config: Config<stormd::Config> = opts.clone().into();
     trace!("Daemon configuration: {:?}", config);
     debug!("MSG socket {}", config.msg_endpoint);
     debug!("CTL socket {}", config.ctl_endpoint);

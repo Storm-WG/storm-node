@@ -10,10 +10,11 @@
 
 use internet2::presentation;
 use microservices::rpc::ServerError;
-use microservices::{esb, rpc};
+use microservices::{esb, rpc, LauncherError};
 use storm_rpc::{FailureCode, RpcMsg, ServiceId};
 
 use crate::bus::ServiceBus;
+use crate::stormd::Daemon;
 use crate::transferd;
 
 #[derive(Clone, Debug, Display, Error, From)]
@@ -29,7 +30,7 @@ pub enum LaunchError {
 
 impl microservices::error::Error for LaunchError {}
 
-#[derive(Clone, Debug, Display, Error, From)]
+#[derive(Debug, Display, Error, From)]
 #[display(doc_comments)]
 pub(crate) enum DaemonError {
     #[from]
@@ -39,6 +40,10 @@ pub(crate) enum DaemonError {
     /// ESB error: {0}
     #[from]
     Esb(esb::Error<ServiceId>),
+
+    /// failed to launch a daemon: {0}
+    #[from(LauncherError<Daemon>)]
+    DaemonLaunch(Box<LauncherError<Daemon>>),
 
     /// Error during transfer process
     #[from]
@@ -71,6 +76,7 @@ impl From<DaemonError> for RpcMsg {
                 FailureCode::UnexpectedRequest
             }
             DaemonError::TransferAutomation(_) => FailureCode::TransferAutomation,
+            DaemonError::DaemonLaunch(_) => FailureCode::Launch,
         };
         RpcMsg::Failure(rpc::Failure {
             code: code.into(),
