@@ -16,6 +16,9 @@ extern crate internet2;
 extern crate log;
 #[macro_use]
 extern crate strict_encoding;
+#[cfg(feature = "server")]
+#[macro_use]
+extern crate clap;
 
 mod config;
 mod error;

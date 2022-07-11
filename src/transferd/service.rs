@@ -12,9 +12,8 @@ use std::thread;
 use std::time::Duration;
 
 use internet2::ZmqSocketType;
-use lnp_rpc::ClientId;
 use microservices::error::BootstrapError;
-use microservices::esb::{self, EndpointList, Error};
+use microservices::esb::{self, ClientId, EndpointList, Error};
 use microservices::node::TryService;
 use rand::random;
 use storm_rpc::{ContainerAddr, RpcMsg, ServiceId};

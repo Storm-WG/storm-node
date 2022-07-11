@@ -11,7 +11,7 @@
 use std::collections::VecDeque;
 
 use internet2::addr::NodeId;
-use lnp_rpc::ClientId;
+use microservices::esb::ClientId;
 use storm::{p2p, ChunkId, ContainerFullId, StormApp};
 
 use super::Runtime;
