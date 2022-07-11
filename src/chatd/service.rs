@@ -158,7 +158,7 @@ impl Runtime {
         message: RpcMsg,
     ) -> Result<(), DaemonError> {
         match message {
-            RpcMsg::SendChatMsg(ChatBulb { remote_id, text }) => {
+            RpcMsg::SendChat(ChatBulb { remote_id, text }) => {
                 let addressed_msg = AddressedMsg {
                     remote_id,
                     data: Mesg {

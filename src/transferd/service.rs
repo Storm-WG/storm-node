@@ -124,7 +124,7 @@ impl Runtime {
         message: RpcMsg,
     ) -> Result<(), DaemonError> {
         match message {
-            RpcMsg::Receive(ContainerAddr {
+            RpcMsg::GetContainer(ContainerAddr {
                 storm_app,
                 remote_id,
                 container_id,

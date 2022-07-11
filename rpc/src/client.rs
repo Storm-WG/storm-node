@@ -107,7 +107,7 @@ impl Client {
 
 impl Client {
     pub fn chat_tell(&mut self, remote_id: NodeId, text: String) -> Result<(), Error> {
-        self.request(RpcMsg::SendChatMsg(ChatBulb { remote_id, text }), ServiceId::chatd())
+        self.request(RpcMsg::SendChat(ChatBulb { remote_id, text }), ServiceId::chatd())
     }
 
     pub fn chat_recv(&mut self, from_remote_id: NodeId) -> Result<String, Error> {

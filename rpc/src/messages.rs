@@ -52,13 +52,13 @@ pub enum RpcMsg {
      */
     /// Send a chat message to the remote peer. The peer must be connected.
     #[display("send_chat({0})")]
-    SendChatMsg(ChatBulb),
+    SendChat(ChatBulb),
 
     #[display("send({0})")]
-    Send(ContainerAddr),
+    SendContainer(ContainerAddr),
 
     #[display("receive({0})")]
-    Receive(ContainerAddr),
+    GetContainer(ContainerAddr),
 
     // Responses to CLI
     // ----------------
@@ -87,8 +87,8 @@ pub enum RadioMsg {
 #[derive(NetworkEncode, NetworkDecode)]
 #[display("{container_id}~{remote_id}")]
 pub struct ContainerAddr {
-    pub storm_app: StormApp,
     pub remote_id: NodeId,
+    pub storm_app: StormApp,
     pub container_id: ContainerFullId,
 }
 
