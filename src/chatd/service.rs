@@ -16,7 +16,7 @@ use lnp_rpc::ClientId;
 use microservices::error::BootstrapError;
 use microservices::esb::{self, EndpointList, Error};
 use microservices::node::TryService;
-use storm::{Mesg, StormApp};
+use storm::Mesg;
 use storm_ext::{AddressedMsg, ExtMsg};
 use storm_rpc::{ChatBulb, RpcMsg, ServiceId};
 

@@ -67,9 +67,9 @@ pub enum ExtMsg {
     ProposeTopic(AddressedMsg<Topic>),
 
     /// A message sent from Storm node to the app extension on arrival of the new information from
-    /// remote peer via Bifrost network.
+    /// remote peer via Bifrost network and from the app extension to the Storm node on sent.
     #[api(type = 0x0008)]
-    #[display("post_received({0})")]
+    #[display("post({0})")]
     Post(AddressedMsg<Mesg>),
 
     /// A message from app extension to external peer requesting certain message or a topic from a

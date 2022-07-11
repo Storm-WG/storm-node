@@ -23,7 +23,7 @@ pub type DaemonId = u64;
 #[derive(Clone, PartialEq, Eq, Hash, Debug, Display, From, StrictEncode, StrictDecode)]
 pub enum ServiceId {
     #[display("stormd")]
-    #[strict_encoding(value = 0x24)] // This mimics Bifrost LNP storm service id
+    #[strict_encoding(value = 0x25)] // This mimics Bifrost LNP storm service id
     MsgApp(BifrostApp),
 
     #[display("chapp<{0}>")]
@@ -44,7 +44,7 @@ pub enum ServiceId {
     #[strict_encoding(value = 0x20)]
     Lnp,
 
-    #[display("peerd<biffrost, {0}>")]
+    #[display("peerd<bifrost, {0}>")]
     #[from]
     #[strict_encoding(value = 0x22)]
     Peer(NodeId),
