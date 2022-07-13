@@ -189,6 +189,8 @@ impl Runtime {
                 mesg,
                 Messages::PushContainer(_) | Messages::PullChunk(_) | Messages::PushChunk(_)
             ) {
+                debug!("Processing container transfer request {}", mesg);
+
                 // TODO: Ensure that the incoming chunks references correct app id and message id
                 let (container_id, instr) = match mesg {
                     // These should be processed by transfer service
@@ -222,8 +224,11 @@ impl Runtime {
 
                 if let Some(daemon_id) = self.container_transfers.get(&container_id) {
                     self.send_ctl(endpoints, ServiceId::Transfer(*daemon_id), instr)?;
+                } else if matches!(instr, CtlMsg::SendChunks(_)) {
+                    self.ctl_queue.push_back(instr);
+                    self.pick_or_start(endpoints, None)?;
                 } else {
-                    warn!("Got unannounced chunk pull for {}", container_id);
+                    warn!("No active transfer is known for requested {}", container_id);
                 };
 
                 return Ok(());
