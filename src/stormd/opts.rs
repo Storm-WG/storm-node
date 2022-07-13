@@ -24,6 +24,10 @@ pub struct Opts {
     /// Run chat service.
     #[clap(long)]
     pub chat: bool,
+
+    /// Run downpour (torrent-like) service.
+    #[clap(long)]
+    pub downpour: bool,
 }
 
 impl Opts {

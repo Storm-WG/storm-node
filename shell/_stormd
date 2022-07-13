@@ -40,6 +40,7 @@ _stormd() {
 '-T[Spawn daemons as threads and not processes]' \
 '--threaded[Spawn daemons as threads and not processes]' \
 '--chat[Run chat service]' \
+'--downpour[Run downpour (torrent-like) service]' \
 && ret=0
 }
 

@@ -13,10 +13,8 @@ use std::fmt::Debug;
 
 use internet2::addr::NodeId;
 use microservices::esb::ClientId;
-use storm::{
-    p2p, ChunkId, Container, ContainerFullId, ContainerHeader, ContainerId, ContainerInfo, StormApp,
-};
-use storm_rpc::{DB_TABLE_CONTAINERS, DB_TABLE_CONTAINER_HEADERS};
+use storm::{p2p, ChunkId, ContainerFullId, ContainerHeader, ContainerInfo, StormApp};
+use storm_rpc::DB_TABLE_CONTAINER_HEADERS;
 use strict_encoding::StrictDecode;
 
 use super::Runtime;

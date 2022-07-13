@@ -109,6 +109,11 @@ impl esb::Handler<ServiceBus> for Runtime {
             let config = Config::with(self.config.clone(), ());
             self.launch_daemon(Daemon::Chatd, config)?;
         }
+        if self.config.ext.run_downpour {
+            info!("Starting downpour daemon...");
+            let config = Config::with(self.config.clone(), ());
+            self.launch_daemon(Daemon::Downpourd, config)?;
+        }
         Ok(())
     }
 
@@ -222,8 +227,11 @@ impl Runtime {
     ) -> Result<(), DaemonError> {
         match &message {
             CtlMsg::Hello => {
-                self.accept_daemon(source)?;
-                self.pick_task(endpoints)?;
+                if matches!(source, ServiceId::Transfer(_)) {
+                    self.accept_daemon(source)?;
+                    self.pick_task(endpoints)?;
+                }
+                // TODO: Register other daemons
             }
 
             wrong_msg => {

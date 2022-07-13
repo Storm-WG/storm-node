@@ -66,6 +66,7 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
 }
 
 pub struct Runtime {
+    #[allow(dead_code)]
     pub(super) store: store_rpc::Client,
 }
 

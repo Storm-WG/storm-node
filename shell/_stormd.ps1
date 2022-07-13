@@ -46,6 +46,7 @@ Register-ArgumentCompleter -Native -CommandName 'stormd' -ScriptBlock {
             [CompletionResult]::new('-T', 'T', [CompletionResultType]::ParameterName, 'Spawn daemons as threads and not processes')
             [CompletionResult]::new('--threaded', 'threaded', [CompletionResultType]::ParameterName, 'Spawn daemons as threads and not processes')
             [CompletionResult]::new('--chat', 'chat', [CompletionResultType]::ParameterName, 'Run chat service')
+            [CompletionResult]::new('--downpour', 'downpour', [CompletionResultType]::ParameterName, 'Run downpour (torrent-like) service')
             break
         }
     })

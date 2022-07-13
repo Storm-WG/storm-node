@@ -14,7 +14,7 @@ use microservices::error::BootstrapError;
 use microservices::{DaemonHandle, Launcher, LauncherError};
 
 use super::Runtime;
-use crate::{chatd, transferd, Config, LaunchError};
+use crate::{chatd, downpourd, transferd, Config, LaunchError};
 
 /// Daemons that can be launched by lnpd
 #[derive(Clone, Eq, PartialEq, Debug, Display)]
@@ -24,6 +24,9 @@ pub enum Daemon {
 
     #[display("chatd")]
     Chatd,
+
+    #[display("downpourd")]
+    Downpourd,
 }
 
 impl Launcher for Daemon {
@@ -34,6 +37,7 @@ impl Launcher for Daemon {
         match self {
             Daemon::Transferd => "transferd",
             Daemon::Chatd => "chatd",
+            Daemon::Downpourd => "downpourd",
         }
     }
 
@@ -51,6 +55,7 @@ impl Launcher for Daemon {
         match self {
             Daemon::Transferd => transferd::run(config),
             Daemon::Chatd => chatd::run(config),
+            Daemon::Downpourd => downpourd::run(config),
         }
     }
 }

@@ -14,6 +14,7 @@ use crate::opts::Options;
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
 pub struct Config {
     pub run_chat: bool,
+    pub run_downpour: bool,
 }
 
 impl Options for Opts {
@@ -24,6 +25,7 @@ impl Options for Opts {
     fn config(&self) -> Self::Conf {
         Config {
             run_chat: self.chat,
+            run_downpour: self.downpour,
         }
     }
 }
