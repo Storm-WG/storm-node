@@ -18,11 +18,13 @@ use storm::{
     p2p, Chunk, ChunkId, Container, ContainerFullId, ContainerHeader, ContainerId, ContainerInfo,
     StormApp,
 };
-use storm_rpc::{RpcMsg, DB_TABLE_CHUNKS, DB_TABLE_CONTAINERS, DB_TABLE_CONTAINER_HEADERS};
+use storm_rpc::{
+    RpcMsg, ServiceId, DB_TABLE_CHUNKS, DB_TABLE_CONTAINERS, DB_TABLE_CONTAINER_HEADERS,
+};
 use strict_encoding::{StrictDecode, StrictEncode};
 
 use super::Runtime;
-use crate::bus::{Endpoints, Responder};
+use crate::bus::{CtlMsg, Endpoints, Responder};
 use crate::DaemonError;
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display, Error)]
@@ -233,6 +235,10 @@ impl Runtime {
         match &mut self.state {
             State::Receive(ReceiveState::ReceivingChunks { pending, .. }) => {
                 pending.remove(&chunk_id);
+                if pending.is_empty() {
+                    self.state = StateTy::Free;
+                    self.send_ctl(endpoints, ServiceId::stormd(), CtlMsg::ProcessingComplete)?;
+                }
             }
             _ => unreachable!(),
         }
@@ -267,6 +273,7 @@ impl Runtime {
             remote_id,
             p2p::Messages::AnnounceContainer(msg),
         );
+        self.send_ctl(endpoints, ServiceId::stormd(), CtlMsg::ProcessingComplete)?;
 
         Ok(())
     }
@@ -297,6 +304,7 @@ impl Runtime {
             remote_id,
             p2p::Messages::PushContainer(msg),
         );
+        self.send_ctl(endpoints, ServiceId::stormd(), CtlMsg::ProcessingComplete)?;
 
         Ok(())
     }
@@ -326,6 +334,7 @@ impl Runtime {
                 );
             }
         }
+        self.send_ctl(endpoints, ServiceId::stormd(), CtlMsg::ProcessingComplete)?;
 
         Ok(())
     }
