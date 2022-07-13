@@ -279,7 +279,7 @@ impl Runtime {
         self.send_p2p_reporting_client(
             endpoints,
             client_id,
-            Some("Sending container announcement"),
+            None,
             remote_id,
             p2p::Messages::AnnounceContainer(msg),
         );
