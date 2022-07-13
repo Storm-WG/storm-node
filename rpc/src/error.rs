@@ -29,7 +29,11 @@ pub enum FailureCode {
 
     UnexpectedRequest = 0x11,
 
+    Store = 0x12,
+
     TransferAutomation = 0x20,
+
+    UnknownContainer = 0x21,
 }
 
 impl Display for FailureCode {

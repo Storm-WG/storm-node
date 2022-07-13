@@ -13,13 +13,14 @@ use std::time::Duration;
 
 use internet2::ZmqSocketType;
 use microservices::error::BootstrapError;
-use microservices::esb::{self, ClientId, EndpointList, Error};
+use microservices::esb::{self, EndpointList, Error};
 use microservices::node::TryService;
 use rand::random;
-use storm_rpc::{AddressedMsg, AppContainer, RpcMsg, ServiceId};
+use storm_rpc::{AppContainer, ServiceId};
 
-use super::State;
-use crate::bus::{BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus};
+use super::StateTy;
+use crate::bus::{AddressedClientMsg, BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus};
+use crate::transferd::automation::State;
 use crate::{Config, DaemonError, LaunchError};
 
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
@@ -69,7 +70,7 @@ impl Runtime {
         Ok(Self {
             id,
             store,
-            state: State::Free,
+            state: StateTy::Free,
         })
     }
 }
@@ -96,9 +97,6 @@ impl esb::Handler<ServiceBus> for Runtime {
         request: Self::Request,
     ) -> Result<(), Self::Error> {
         match (bus_id, request, source) {
-            (ServiceBus::Rpc, BusMsg::Rpc(msg), ServiceId::Client(client_id)) => {
-                self.handle_rpc(endpoints, client_id, msg)
-            }
             (ServiceBus::Ctl, BusMsg::Ctl(msg), source) => self.handle_ctl(endpoints, source, msg),
             (bus, msg, _) => Err(DaemonError::wrong_esb_msg(bus, &msg)),
         }
@@ -117,44 +115,43 @@ impl esb::Handler<ServiceBus> for Runtime {
 }
 
 impl Runtime {
-    fn handle_rpc(
+    fn handle_ctl(
         &mut self,
         endpoints: &mut Endpoints,
-        client_id: ClientId,
-        message: RpcMsg,
+        _source: ServiceId,
+        message: CtlMsg,
     ) -> Result<(), DaemonError> {
         match message {
-            RpcMsg::GetContainer(AddressedMsg {
+            CtlMsg::GetContainer(AddressedClientMsg {
                 remote_id,
+                client_id,
                 data:
                     AppContainer {
                         storm_app,
                         container_id,
                     },
             }) => {
-                self.handle_transfer(endpoints, client_id, storm_app, remote_id, container_id)?;
+                self.handle_receive(endpoints, client_id, storm_app, remote_id, container_id)?;
             }
 
-            wrong_msg => {
-                error!("Request is not supported by the RPC interface");
-                return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg));
+            CtlMsg::SendContainer(AddressedClientMsg {
+                remote_id,
+                client_id,
+                data:
+                    AppContainer {
+                        storm_app,
+                        container_id,
+                    },
+            }) => {
+                self.handle_send(endpoints, client_id, storm_app, remote_id, container_id)?;
             }
-        }
 
-        Ok(())
-    }
-
-    fn handle_ctl(
-        &mut self,
-        _endpoints: &mut Endpoints,
-        _source: ServiceId,
-        message: CtlMsg,
-    ) -> Result<(), DaemonError> {
-        match message {
             wrong_msg => {
                 error!("Request is not supported by the CTL interface");
                 return Err(DaemonError::wrong_esb_msg(ServiceBus::Ctl, &wrong_msg));
             }
         }
+
+        Ok(())
     }
 }

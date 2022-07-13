@@ -8,13 +8,14 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, VecDeque};
 use std::ops::Deref;
 
 use internet2::addr::NodeId;
 use internet2::{Unmarshall, ZmqSocketType};
 use lnp2p::bifrost;
 use lnp2p::bifrost::{BifrostApp, Messages as LnMsg};
+use microservices::cli::LogStyle;
 use microservices::error::BootstrapError;
 use microservices::esb;
 use microservices::esb::{ClientId, EndpointList, Error};
@@ -22,9 +23,9 @@ use microservices::node::TryService;
 use storm::p2p::{Messages, STORM_P2P_UNMARSHALLER};
 use storm::StormApp;
 use storm_ext::{ExtMsg, StormExtMsg};
-use storm_rpc::{RpcMsg, ServiceId};
+use storm_rpc::{AppContainer, RpcMsg, ServiceId};
 
-use crate::bus::{BusMsg, CtlMsg, Endpoints, Responder, ServiceBus};
+use crate::bus::{AddressedClientMsg, BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus};
 use crate::stormd::Daemon;
 use crate::{Config, DaemonError, LaunchError};
 
@@ -70,7 +71,11 @@ pub fn run(config: Config<super::Config>) -> Result<(), BootstrapError<LaunchErr
 
 pub struct Runtime {
     pub(super) config: Config<super::Config>,
-    registered_apps: BTreeSet<StormApp>,
+    pub(super) registered_apps: BTreeSet<StormApp>,
+
+    pub(crate) transferd_free: VecDeque<DaemonId>,
+    pub(crate) transferd_busy: BTreeSet<DaemonId>,
+    pub(crate) ctl_queue: VecDeque<CtlMsg>,
 }
 
 impl Runtime {
@@ -83,6 +88,9 @@ impl Runtime {
         Ok(Self {
             config,
             registered_apps: empty!(),
+            transferd_free: empty!(),
+            transferd_busy: empty!(),
+            ctl_queue: empty!(),
         })
     }
 }
@@ -190,9 +198,18 @@ impl Runtime {
         message: RpcMsg,
     ) -> Result<(), DaemonError> {
         match message {
+            RpcMsg::SendContainer(container) => {
+                self.ctl_queue.push_back(CtlMsg::SendContainer(AddressedClientMsg {
+                    remote_id: container.remote_id,
+                    client_id: Some(client_id),
+                    data: container.data,
+                }));
+                self.pick_or_start(endpoints, Some(client_id))
+            }
+
             wrong_msg => {
                 error!("Request is not supported by the RPC interface");
-                return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg));
+                Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg))
             }
         }
     }
@@ -205,7 +222,8 @@ impl Runtime {
     ) -> Result<(), DaemonError> {
         match &message {
             CtlMsg::Hello => {
-                // TODO: Process with daemon registration
+                self.accept_daemon(source)?;
+                self.pick_task(endpoints)?;
             }
 
             wrong_msg => {
@@ -243,12 +261,96 @@ impl Runtime {
                 }
             }
 
+            ExtMsg::RetrieveContainer(container) => {
+                self.ctl_queue.push_back(CtlMsg::GetContainer(AddressedClientMsg {
+                    remote_id: container.remote_id,
+                    client_id: None,
+                    data: AppContainer {
+                        storm_app: app,
+                        container_id: container.data,
+                    },
+                }));
+                self.pick_or_start(endpoints, None)?;
+            }
+
             // We need to the rest of the messages to the Bifrost network
             forward => {
                 self.send_p2p(endpoints, forward.remote_id(), forward.p2p_message(app))?;
             }
         }
 
+        Ok(())
+    }
+}
+
+impl Runtime {
+    fn accept_daemon(&mut self, source: ServiceId) -> Result<(), esb::Error<ServiceId>> {
+        info!("{} daemon is {}", source.ended(), "connected".ended());
+
+        match source {
+            service_id if service_id == ServiceId::stormd() => {
+                error!("{}", "Unexpected another Stormd instance connection".err());
+            }
+            ServiceId::Transfer(daemon_id) => {
+                self.transferd_free.push_back(daemon_id);
+                info!(
+                    "Transfer service {} is registered; total {} container processors are known",
+                    daemon_id,
+                    self.transferd_free.len() + self.transferd_busy.len()
+                );
+            }
+            _ => {
+                // Ignoring the rest of daemon/client types
+            }
+        }
+
+        Ok(())
+    }
+
+    fn pick_task(&mut self, endpoints: &mut Endpoints) -> Result<bool, esb::Error<ServiceId>> {
+        let msg = match self.ctl_queue.pop_front() {
+            None => return Ok(true),
+            Some(req) => req,
+        };
+
+        let (service, daemon_id) = match self.transferd_free.front() {
+            Some(damon_id) => (ServiceId::Transfer(*damon_id), *damon_id),
+            None => return Ok(false),
+        };
+
+        self.send_ctl(endpoints, service, msg)?;
+        self.transferd_free.pop_front();
+        self.transferd_busy.insert(daemon_id);
+        Ok(true)
+    }
+
+    fn pick_or_start(
+        &mut self,
+        endpoints: &mut Endpoints,
+        client_id: Option<ClientId>,
+    ) -> Result<(), DaemonError> {
+        if self.pick_task(endpoints)? {
+            if let Some(client_id) = client_id {
+                let _ = self.send_rpc(
+                    endpoints,
+                    client_id,
+                    RpcMsg::Progress(s!("Container send request is forwarded to transfer service")),
+                );
+            }
+            return Ok(());
+        }
+
+        let config = self.config.clone().into();
+        let _handle = self.launch_daemon(Daemon::Transferd, config)?;
+        if let Some(client_id) = client_id {
+            let _ = self.send_rpc(
+                endpoints,
+                client_id,
+                RpcMsg::Progress(s!("A new transfer service instance is started")),
+            );
+        }
+
+        // TODO: Store daemon handlers
         Ok(())
     }
 }

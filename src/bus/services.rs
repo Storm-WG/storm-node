@@ -62,7 +62,7 @@ where
     fn send_p2p_reporting_client(
         &self,
         endpoints: &mut Endpoints,
-        client_id: ClientId,
+        client_id: Option<ClientId>,
         client_message: impl Into<OptionDetails>,
         remote_id: NodeId,
         message: impl Into<p2p::Messages>,
@@ -72,20 +72,28 @@ where
         let _ = match self.send_p2p(endpoints, remote_id, message) {
             Ok(_) => {
                 if let Some(client_message) = client_message.0 {
-                    self.send_rpc(endpoints, client_id, RpcMsg::Progress(client_message))
+                    if let Some(client_id) = client_id {
+                        self.send_rpc(endpoints, client_id, RpcMsg::Progress(client_message))
+                    } else {
+                        Ok(())
+                    }
                 } else {
                     Ok(())
                 }
             }
             Err(err) => {
-                let failure = rpc::Failure {
-                    code: rpc::FailureCode::Transport,
-                    info: format!("{}", err),
-                };
-                self.send_rpc(endpoints, client_id, failure)
+                if let Some(client_id) = client_id {
+                    let failure = rpc::Failure {
+                        code: rpc::FailureCode::Transport,
+                        info: format!("{}", err),
+                    };
+                    self.send_rpc(endpoints, client_id, failure)
+                } else {
+                    Ok(())
+                }
             }
         }
-        .map_err(|_| warn!("client {} is disconnected", client_id));
+        .map_err(|_| warn!("client {} is disconnected", client_id.expect("only RPC send errors")));
     }
 
     #[inline]

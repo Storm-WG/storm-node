@@ -27,3 +27,19 @@ impl Options for Opts {
         }
     }
 }
+
+impl From<crate::Config<Config>> for crate::Config<()> {
+    fn from(config: crate::Config<Config>) -> Self {
+        crate::Config {
+            data_dir: config.data_dir,
+            msg_endpoint: config.msg_endpoint,
+            ctl_endpoint: config.ctl_endpoint,
+            rpc_endpoint: config.rpc_endpoint,
+            ext_endpoint: config.ext_endpoint,
+            store_endpoint: config.store_endpoint,
+            chat_endpoint: config.chat_endpoint,
+            threaded: config.threaded,
+            ext: (),
+        }
+    }
+}

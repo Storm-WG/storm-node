@@ -13,8 +13,8 @@ mod service;
 mod opts;
 mod automation;
 
-pub(self) use automation::State;
-pub use automation::{AutomationError, Instruction, StateName};
+pub(self) use automation::StateTy;
+pub use automation::{AutomationError, StateName};
 #[cfg(feature = "server")]
 pub use opts::Opts;
 pub use service::{run, Runtime};

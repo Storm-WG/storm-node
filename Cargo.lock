@@ -2097,9 +2097,9 @@ dependencies = [
 
 [[package]]
 name = "storm-core"
-version = "0.8.0-beta.3"
+version = "0.8.0-beta.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d87472c1a03d099b34062faa0c16f1c480d7e33ab4d2be7b021ac7f5d82afbe"
+checksum = "f748a74164692335f05d129feaada75d54d605d42bab542fdc732078cea86e24"
 dependencies = [
  "amplify",
  "bitcoin_hashes",

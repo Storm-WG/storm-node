@@ -9,10 +9,15 @@
 // If not, see <https://opensource.org/licenses/MIT>.
 
 use std::collections::VecDeque;
+use std::fmt::Debug;
 
 use internet2::addr::NodeId;
 use microservices::esb::ClientId;
-use storm::{p2p, ChunkId, ContainerFullId, StormApp};
+use storm::{
+    p2p, ChunkId, Container, ContainerFullId, ContainerHeader, ContainerId, ContainerInfo, StormApp,
+};
+use storm_rpc::{DB_TABLE_CONTAINERS, DB_TABLE_CONTAINER_HEADERS};
+use strict_encoding::StrictDecode;
 
 use super::Runtime;
 use crate::bus::{Endpoints, Responder};
@@ -21,39 +26,41 @@ use crate::DaemonError;
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display, Error)]
 #[display(doc_comments)]
 pub enum AutomationError {
-    /// an incoming instruction {} requires {expected} state, while the service is in the {found}
-    /// state
+    /// the service is required to be in a {expected} state, while its state is {found}
     InvalidState {
-        instruction: Instruction,
         expected: StateName,
         found: StateName,
     },
 }
 
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display, Error)]
+pub type StateName = StateTy<ReceiveStateName>;
+pub type State = StateTy<ReceiveState>;
+
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display)]
 #[display(Debug)]
-pub enum Instruction {
-    Transfer,
+pub enum StateTy<R>
+where R: Debug
+{
+    Free,
+    Receive(R),
 }
 
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display, Error)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display)]
 #[display(Debug)]
-pub enum StateName {
-    Free,
+pub enum ReceiveStateName {
     AwaitingContainer,
     AwaitingChunk,
 }
 
 #[derive(Debug)]
-pub enum State {
-    Free,
+pub enum ReceiveState {
     AwaitingContainer {
-        client_id: ClientId,
+        client_id: Option<ClientId>,
         remote_id: NodeId,
         container_id: ContainerFullId,
     },
     AwaitingChunk {
-        client_id: ClientId,
+        client_id: Option<ClientId>,
         remote_id: NodeId,
         container_id: ContainerFullId,
         current: ChunkId,
@@ -61,23 +68,26 @@ pub enum State {
     },
 }
 
+impl ReceiveState {
+    pub fn state_name(&self) -> ReceiveStateName {
+        match self {
+            ReceiveState::AwaitingContainer { .. } => ReceiveStateName::AwaitingContainer,
+            ReceiveState::AwaitingChunk { .. } => ReceiveStateName::AwaitingChunk,
+        }
+    }
+}
+
 impl State {
     pub fn state_name(&self) -> StateName {
         match self {
-            State::Free => StateName::Free,
-            State::AwaitingContainer { .. } => StateName::AwaitingContainer,
-            State::AwaitingChunk { .. } => StateName::AwaitingChunk,
+            State::Receive(recv) => StateName::Receive(recv.state_name()),
+            State::Free => StateTy::Free,
         }
     }
 
-    pub fn require_state(
-        &self,
-        expected: StateName,
-        instruction: Instruction,
-    ) -> Result<(), AutomationError> {
+    pub fn require_state(&self, expected: StateName) -> Result<(), AutomationError> {
         if self.state_name() != expected {
             Err(AutomationError::InvalidState {
-                instruction,
                 expected: StateName::Free,
                 found: self.state_name(),
             })
@@ -87,23 +97,25 @@ impl State {
     }
 }
 
+// Receive workflow
 impl Runtime {
-    pub(super) fn handle_transfer(
+    // TODO: Use this on receiving container announce
+    pub(super) fn handle_receive(
         &mut self,
         endpoints: &mut Endpoints,
-        client_id: ClientId,
+        client_id: Option<ClientId>,
         storm_app: StormApp,
         remote_id: NodeId,
         container_id: ContainerFullId,
     ) -> Result<(), DaemonError> {
-        self.state.require_state(StateName::Free, Instruction::Transfer)?;
+        self.state.require_state(StateName::Free)?;
 
         // Switching the state
-        self.state = State::AwaitingContainer {
+        self.state = State::Receive(ReceiveState::AwaitingContainer {
             client_id,
             remote_id,
             container_id,
-        };
+        });
 
         // TODO: Ensure connectivity to the remote peer. This requires connection
         //       to LNP RPC bus
@@ -122,6 +134,37 @@ impl Runtime {
         );
 
         // Request all unknown chunks
+        Ok(())
+    }
+
+    pub(super) fn handle_send(
+        &mut self,
+        endpoints: &mut Endpoints,
+        client_id: Option<ClientId>,
+        storm_app: StormApp,
+        remote_id: NodeId,
+        id: ContainerFullId,
+    ) -> Result<(), DaemonError> {
+        self.state.require_state(StateName::Free)?;
+
+        let header_chunk = self
+            .store
+            .retrieve_chunk(DB_TABLE_CONTAINER_HEADERS, id.container_id)?
+            .ok_or(DaemonError::UnknownContainer(id.container_id))?;
+        let header = ContainerHeader::strict_deserialize(header_chunk)?;
+        let info = ContainerInfo { header, id };
+        let msg = p2p::AppMsg {
+            app: storm_app,
+            data: info,
+        };
+        self.send_p2p_reporting_client(
+            endpoints,
+            client_id,
+            "Sending container announcement",
+            remote_id,
+            p2p::Messages::AnnounceContainer(msg),
+        );
+
         Ok(())
     }
 }

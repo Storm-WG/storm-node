@@ -134,8 +134,16 @@ impl Runtime {
         message: ExtMsg,
     ) -> Result<(), DaemonError> {
         match message {
-            ExtMsg::Post(AddressedMsg { remote_id, data }) => {
-                todo!()
+            ExtMsg::ContainerAnnouncement(AddressedMsg { remote_id, data }) => {
+                // For now we are retrieving all containers
+                self.send_ext(
+                    endpoints,
+                    None,
+                    ExtMsg::RetrieveContainer(AddressedMsg {
+                        remote_id,
+                        data: data.id,
+                    }),
+                )?;
             }
             wrong_msg => {
                 error!("Request is not supported by the Storm interface");
@@ -148,8 +156,8 @@ impl Runtime {
 
     fn handle_rpc(
         &mut self,
-        endpoints: &mut Endpoints,
-        client_id: ClientId,
+        _endpoints: &mut Endpoints,
+        _client_id: ClientId,
         message: RpcMsg,
     ) -> Result<(), DaemonError> {
         match message {
@@ -158,8 +166,6 @@ impl Runtime {
                 return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg));
             }
         }
-
-        Ok(())
     }
 
     fn handle_ctl(

@@ -16,7 +16,7 @@ use amplify::IoError;
 use internet2::addr::PartialNodeAddr;
 use lnp::addr::LnpAddr;
 use microservices::rpc::ServerError;
-use storm::{Chunk, Container};
+use storm::{Chunk, Container, ContainerHeader};
 use strict_encoding::{MediumVec, StrictDecode, StrictEncode};
 
 use crate::{Command, Opts};
@@ -82,15 +82,21 @@ impl Opts {
                 }
 
                 let total_chunks = chunk_ids.len();
-                let container = Container {
+                let header = ContainerHeader {
                     version: 0,
                     mime,
                     info: info.unwrap_or_default(),
                     size,
+                };
+                let header_chunk = Chunk::try_from(header.strict_serialize()?)?;
+                let container = Container {
+                    header,
                     chunks: chunk_ids,
                 };
-                let id = container.container_id();
                 let container_chunk = Chunk::try_from(container.strict_serialize()?)?;
+
+                let id = container.container_id();
+                store_client.store(storm_rpc::DB_TABLE_CONTAINERS, id, &header_chunk)?;
                 store_client.store(storm_rpc::DB_TABLE_CONTAINERS, id, &container_chunk)?;
                 eprint!("Containerized with id ");
                 print!("{}", id);
@@ -101,9 +107,9 @@ impl Opts {
                     .retrieve_chunk(storm_rpc::DB_TABLE_CONTAINERS, container_id)?
                     .expect("No container with the provided id");
                 let container = Container::strict_deserialize(container_chunk)?;
-                println!("Size: {} bytes", container.size);
-                println!("MIME: {}", container.mime);
-                println!("Info: {}", container.info);
+                println!("Size: {} bytes", container.header.size);
+                println!("MIME: {}", container.header.mime);
+                println!("Info: {}", container.header.info);
                 let mut file = fs::File::create(&path)?;
                 for chunk_id in container.chunks {
                     let chunk = store_client

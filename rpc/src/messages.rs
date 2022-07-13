@@ -64,12 +64,6 @@ pub enum RpcMsg {
     #[display("receive({0})")]
     GetContainer(AddressedMsg<AppContainer>),
 
-    #[display("store(...)")]
-    StoreFile(AddressedMsg<Vec<u8>>),
-
-    #[display("retrieve(...)")]
-    RetrieveFile(AddressedMsg<Vec<u8>>),
-
     // Responses to CLI
     // ----------------
     #[display("progress(\"{0}\")")]

@@ -11,6 +11,7 @@
 use internet2::presentation;
 use microservices::rpc::ServerError;
 use microservices::{esb, rpc, LauncherError};
+use storm::ContainerId;
 use storm_rpc::{FailureCode, RpcMsg, ServiceId};
 
 use crate::bus::ServiceBus;
@@ -45,6 +46,11 @@ pub(crate) enum DaemonError {
     #[from(LauncherError<Daemon>)]
     DaemonLaunch(Box<LauncherError<Daemon>>),
 
+    /// Errors with data storage
+    #[display(inner)]
+    #[from]
+    Store(ServerError<store_rpc::FailureCode>),
+
     /// Error during transfer process
     #[from]
     #[display(inner)]
@@ -59,6 +65,9 @@ pub(crate) enum DaemonError {
 
     /// request `{1}` is not supported on {0} message bus for service {2}
     SourceNotSupported(ServiceBus, String, ServiceId),
+
+    /// container {0} is not known
+    UnknownContainer(ContainerId),
 }
 
 impl microservices::error::Error for DaemonError {}
@@ -77,6 +86,8 @@ impl From<DaemonError> for RpcMsg {
             }
             DaemonError::TransferAutomation(_) => FailureCode::TransferAutomation,
             DaemonError::DaemonLaunch(_) => FailureCode::Launch,
+            DaemonError::Store(_) => FailureCode::Store,
+            DaemonError::UnknownContainer(_) => FailureCode::UnknownContainer,
         };
         RpcMsg::Failure(rpc::Failure {
             code: code.into(),

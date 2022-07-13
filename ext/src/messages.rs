@@ -13,7 +13,7 @@ use std::collections::BTreeSet;
 use internet2::addr::NodeId;
 use microservices::rpc;
 use storm::p2p::{self, AppMsg};
-use storm::{Mesg, MesgId, StormApp, Topic};
+use storm::{ContainerFullId, ContainerInfo, Mesg, MesgId, StormApp, Topic};
 use storm_rpc::AddressedMsg;
 use strict_encoding::StrictEncode;
 
@@ -78,16 +78,26 @@ pub enum ExtMsg {
     #[display("post_retrieve({0})")]
     Read(AddressedMsg<MesgId>),
 
+    /// A received container announcement
+    #[api(type = 0x0011)]
+    #[display("container_announcement({0})")]
+    ContainerAnnouncement(AddressedMsg<ContainerInfo>),
+
+    /// A received container announcement
+    #[api(type = 0x0012)]
+    #[display("container_announcement({0})")]
+    RetrieveContainer(AddressedMsg<ContainerFullId>),
+
     /// Command to the storm node to decline the topic or a message with a specific id coming from
     /// certain peer.
-    #[api(type = 0x000c)]
+    #[api(type = 0x001c)]
     #[display("decline({0})")]
     Decline(AddressedMsg<MesgId>),
 
     /// Command to the storm node to accept the topic or a message with a specific id coming from
     /// certain peer. This also requests the node to download all the unknown containers for the
     /// topic or the message.
-    #[api(type = 0x000e)]
+    #[api(type = 0x001e)]
     #[display("accept({0})")]
     Accept(AddressedMsg<MesgId>),
 }
@@ -115,6 +125,9 @@ impl StormExtMsg for p2p::Messages {
             p2p::Messages::Read(AppMsg { data, app }) => {
                 (app, ExtMsg::Read(AddressedMsg { remote_id, data }))
             }
+            p2p::Messages::AnnounceContainer(AppMsg { data, app }) => {
+                (app, ExtMsg::ContainerAnnouncement(AddressedMsg { remote_id, data }))
+            }
             p2p::Messages::Decline(AppMsg { data, app }) => {
                 (app, ExtMsg::Decline(AddressedMsg { remote_id, data }))
             }
@@ -137,6 +150,8 @@ impl ExtMsg {
             | ExtMsg::ProposeTopic(AddressedMsg { remote_id, .. })
             | ExtMsg::Post(AddressedMsg { remote_id, .. })
             | ExtMsg::Read(AddressedMsg { remote_id, .. })
+            | ExtMsg::ContainerAnnouncement(AddressedMsg { remote_id, .. })
+            | ExtMsg::RetrieveContainer(AddressedMsg { remote_id, .. })
             | ExtMsg::Decline(AddressedMsg { remote_id, .. })
             | ExtMsg::Accept(AddressedMsg { remote_id, .. }) => *remote_id,
         }
@@ -164,6 +179,12 @@ impl ExtMsg {
             ExtMsg::Accept(AddressedMsg { data, .. }) => {
                 p2p::Messages::Accept(AppMsg { app, data })
             }
+            ExtMsg::ContainerAnnouncement(AddressedMsg { data, .. }) => {
+                p2p::Messages::AnnounceContainer(AppMsg { app, data })
+            }
+            ExtMsg::RetrieveContainer(AddressedMsg { .. }) => {
+                unreachable!("the task is handled by a dedicated daemon")
+            }
         }
     }
 
@@ -179,6 +200,8 @@ impl ExtMsg {
             ExtMsg::Read(AddressedMsg { data, .. }) => data.strict_serialize(),
             ExtMsg::Decline(AddressedMsg { data, .. }) => data.strict_serialize(),
             ExtMsg::Accept(AddressedMsg { data, .. }) => data.strict_serialize(),
+            ExtMsg::ContainerAnnouncement(AddressedMsg { data, .. }) => data.strict_serialize(),
+            ExtMsg::RetrieveContainer(AddressedMsg { data, .. }) => data.strict_serialize(),
         }
         .expect("extension-generated message can't be serialized as a bifrost message payload")
     }

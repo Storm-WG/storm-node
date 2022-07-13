@@ -16,7 +16,7 @@ use microservices::rpc;
 use storm_ext::ExtMsg;
 use storm_rpc::{RadioMsg, RpcMsg};
 
-pub use self::ctl::CtlMsg;
+pub use self::ctl::{AddressedClientMsg, CtlMsg};
 pub(crate) use self::services::{DaemonId, Endpoints, Responder, ServiceBus};
 
 /// Service controller messages
