@@ -23,7 +23,10 @@ use microservices::node::TryService;
 use storm::p2p::{AppMsg, ChunkPull, ChunkPush, Messages, STORM_P2P_UNMARSHALLER};
 use storm::{ContainerId, StormApp};
 use storm_ext::{ExtMsg, StormExtMsg};
-use storm_rpc::{AddressedMsg, AppContainer, RpcMsg, ServiceId};
+use storm_rpc::{
+    AddressedMsg, AppContainer, RpcMsg, ServiceId, DB_TABLE_CHUNKS, DB_TABLE_CONTAINERS,
+    DB_TABLE_CONTAINER_HEADERS,
+};
 
 use crate::bus::{
     AddressedClientMsg, BusMsg, ChunkSend, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus,
@@ -75,6 +78,8 @@ pub struct Runtime {
     pub(super) config: Config<super::Config>,
     pub(super) registered_apps: BTreeSet<StormApp>,
 
+    pub(crate) store: store_rpc::Client,
+
     pub(crate) transferd_free: VecDeque<DaemonId>,
     pub(crate) transferd_busy: HashSet<DaemonId>,
     pub(crate) container_transfers: HashMap<ContainerId, DaemonId>,
@@ -83,13 +88,20 @@ pub struct Runtime {
 
 impl Runtime {
     pub fn init(config: Config<super::Config>) -> Result<Self, BootstrapError<LaunchError>> {
-        // debug!("Initializing storage provider {:?}", config.storage_conf());
-        // let storage = storage::FileDriver::with(config.storage_conf())?;
+        debug!("Connecting to store service at {}", config.store_endpoint);
+
+        let mut store =
+            store_rpc::Client::with(&config.store_endpoint).map_err(LaunchError::from)?;
+
+        for table in [DB_TABLE_CONTAINER_HEADERS, DB_TABLE_CONTAINERS, DB_TABLE_CHUNKS] {
+            store.use_table(table.to_owned()).map_err(LaunchError::from)?;
+        }
 
         info!("Stormd runtime started successfully");
 
         Ok(Self {
             config,
+            store,
             registered_apps: empty!(),
             transferd_free: empty!(),
             transferd_busy: empty!(),
