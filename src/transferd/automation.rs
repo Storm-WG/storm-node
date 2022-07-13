@@ -128,9 +128,11 @@ impl Runtime {
         client_id: Option<ClientId>,
         storm_app: StormApp,
         remote_id: NodeId,
-        container_id: ContainerFullId,
+        id: ContainerFullId,
     ) -> Result<(), DaemonError> {
         self.state.require_state(StateName::Free)?;
+
+        debug!("Receiving container {}", id.container_id);
 
         // Switching the state
         self.state = State::Receive(ReceiveState::AwaitingContainer {
@@ -138,14 +140,14 @@ impl Runtime {
                 app_id: storm_app,
                 client_id,
                 remote_id,
-                id: container_id,
+                id,
             },
         });
 
         // Request the remote peer container data
         let msg = p2p::AppMsg {
             app: storm_app,
-            data: container_id,
+            data: id,
         };
         self.send_p2p_reporting_client(
             endpoints,
@@ -165,6 +167,8 @@ impl Runtime {
     ) -> Result<(), DaemonError> {
         self.state.require_state(StateName::Receive(ReceiveStateName::AwaitingContainer))?;
         let info = self.state.info().expect("receive state always have metadata");
+
+        debug!("Processing container info for {}", info.id.container_id);
 
         if let Some(client_id) = info.client_id {
             self.send_rpc(endpoints, client_id, RpcMsg::Progress("Container received".into()))?;
@@ -190,6 +194,8 @@ impl Runtime {
             )?;
         }
 
+        debug!("Requesting {} chunks", chunk_ids.len());
+        trace!("Requested chunk ids: {:?}", chunk_ids);
         self.send_p2p(
             endpoints,
             info.remote_id,
@@ -220,6 +226,7 @@ impl Runtime {
         let info = self.state.info().expect("receive state always have metadata");
 
         let chunk_id = chunk.chunk_id();
+        debug!("Processing chunk {}", chunk_id);
 
         if let Some(client_id) = info.client_id {
             self.send_rpc(
@@ -236,6 +243,7 @@ impl Runtime {
             State::Receive(ReceiveState::ReceivingChunks { pending, .. }) => {
                 pending.remove(&chunk_id);
                 if pending.is_empty() {
+                    info!("Transfer service completed its work");
                     self.state = StateTy::Free;
                     self.send_ctl(endpoints, ServiceId::stormd(), CtlMsg::ProcessingComplete)?;
                 }
@@ -255,6 +263,8 @@ impl Runtime {
         id: ContainerFullId,
     ) -> Result<(), DaemonError> {
         self.state.require_state(StateName::Free)?;
+
+        debug!("Got announcement for {}", id.container_id);
 
         let header_chunk = self
             .store
@@ -288,6 +298,8 @@ impl Runtime {
     ) -> Result<(), DaemonError> {
         self.state.require_state(StateName::Free)?;
 
+        debug!("Got container {}, saving to storage", id.container_id);
+
         let container_chunk = self
             .store
             .retrieve_chunk(DB_TABLE_CONTAINERS, id.container_id)?
@@ -318,6 +330,9 @@ impl Runtime {
         chunk_ids: BTreeSet<ChunkId>,
     ) -> Result<(), DaemonError> {
         self.state.require_state(StateName::Free)?;
+
+        debug!("Got request for {} chunks for {}", chunk_ids.len(), container_id);
+        trace!("Requested chunks: {:?}", chunk_ids);
 
         for chunk_id in chunk_ids {
             // We ignore failed chunks

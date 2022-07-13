@@ -421,6 +421,8 @@ impl Runtime {
             None => return Ok(false),
         };
 
+        debug!("Assigning task {} to {}", msg, service);
+
         let container_id = match msg {
             CtlMsg::GetContainer(AddressedClientMsg {
                 data: AppContainer { container_id, .. },

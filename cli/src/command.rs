@@ -102,9 +102,8 @@ impl Opts {
                 let id = container.container_id();
                 store_client.store(storm_rpc::DB_TABLE_CONTAINER_HEADERS, id, &header_chunk)?;
                 store_client.store(storm_rpc::DB_TABLE_CONTAINERS, id, &container_chunk)?;
-                eprint!("Containerized with id ");
-                print!("{}", id);
-                eprintln!(" ({} chunks in total)", total_chunks);
+                eprintln!("Containerized ({} chunks in total)", total_chunks);
+                println!("{}", id);
             }
             Command::Assemble { container_id, path } => {
                 let container_chunk = store_client

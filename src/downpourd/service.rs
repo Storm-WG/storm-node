@@ -75,7 +75,7 @@ impl Runtime {
 
         let store = store_rpc::Client::with(&config.store_endpoint).map_err(LaunchError::from)?;
 
-        info!("Chat runtime started successfully");
+        info!("Downpour runtime started successfully");
 
         Ok(Self { store })
     }
