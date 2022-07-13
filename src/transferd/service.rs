@@ -16,7 +16,7 @@ use microservices::error::BootstrapError;
 use microservices::esb::{self, EndpointList, Error};
 use microservices::node::TryService;
 use rand::random;
-use storm_rpc::{AppContainer, ServiceId};
+use storm_rpc::{AddressedMsg, AppContainer, ServiceId};
 
 use super::StateTy;
 use crate::bus::{AddressedClientMsg, BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus};
@@ -138,6 +138,10 @@ impl Runtime {
                 self.handle_container(endpoints, container)?;
             }
 
+            CtlMsg::ProcessChunk(chunk) => {
+                self.handle_chunk(endpoints, chunk)?;
+            }
+
             CtlMsg::AnnounceContainer(AddressedClientMsg {
                 remote_id,
                 client_id,
@@ -159,7 +163,23 @@ impl Runtime {
                         container_id,
                     },
             }) => {
-                self.handle_send(endpoints, client_id, storm_app, remote_id, container_id)?;
+                self.handle_send_container(
+                    endpoints,
+                    client_id,
+                    storm_app,
+                    remote_id,
+                    container_id,
+                )?;
+            }
+
+            CtlMsg::SendChunks(AddressedMsg { remote_id, data }) => {
+                self.handle_send_chunks(
+                    endpoints,
+                    data.storm_app,
+                    remote_id,
+                    data.container_id,
+                    data.chunk_ids,
+                )?;
             }
 
             wrong_msg => {

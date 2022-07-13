@@ -8,13 +8,14 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
+use std::collections::BTreeSet;
 use std::fmt::{self, Display, Formatter};
 
 use internet2::addr::NodeId;
 use microservices::esb::ClientId;
 use storm::p2p::AppMsg;
-use storm::Container;
-use storm_rpc::AppContainer;
+use storm::{Chunk, ChunkId, Container, ContainerId, StormApp};
+use storm_rpc::{AddressedMsg, AppContainer};
 use strict_encoding::{StrictDecode, StrictEncode};
 
 /// RPC API requests over CTL message bus between RGB Node daemons.
@@ -37,11 +38,26 @@ pub enum CtlMsg {
     #[display("process_container(...)")]
     ProcessContainer(Container),
 
+    #[display("send_chunks({0})")]
+    SendChunks(AddressedMsg<ChunkSend>),
+
+    #[display("chunk(...)")]
+    ProcessChunk(Chunk),
+
     #[display("processing_complete()")]
     ProcessingComplete,
 
     #[display("processing_failed()")]
     ProcessingFailed,
+}
+
+#[derive(Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug, Display)]
+#[derive(NetworkEncode, NetworkDecode)]
+#[display("{storm_app}, {container_id}, ...")]
+pub struct ChunkSend {
+    pub storm_app: StormApp,
+    pub container_id: ContainerId,
+    pub chunk_ids: BTreeSet<ChunkId>,
 }
 
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug, NetworkEncode, NetworkDecode)]

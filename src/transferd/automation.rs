@@ -13,9 +13,10 @@ use std::fmt::Debug;
 
 use internet2::addr::NodeId;
 use microservices::esb::ClientId;
-use storm::p2p::ChunkPull;
+use storm::p2p::{ChunkPull, ChunkPush};
 use storm::{
-    p2p, Chunk, ChunkId, Container, ContainerFullId, ContainerHeader, ContainerInfo, StormApp,
+    p2p, Chunk, ChunkId, Container, ContainerFullId, ContainerHeader, ContainerId, ContainerInfo,
+    StormApp,
 };
 use storm_rpc::{RpcMsg, DB_TABLE_CHUNKS, DB_TABLE_CONTAINERS, DB_TABLE_CONTAINER_HEADERS};
 use strict_encoding::{StrictDecode, StrictEncode};
@@ -50,7 +51,7 @@ where R: Debug
 #[display(Debug)]
 pub enum ReceiveStateName {
     AwaitingContainer,
-    AwaitingChunks,
+    ReceivingChunks,
 }
 
 #[derive(Debug)]
@@ -58,7 +59,7 @@ pub enum ReceiveState {
     AwaitingContainer {
         info: Info,
     },
-    AwaitingChunks {
+    ReceivingChunks {
         info: Info,
         total: usize,
         pending: BTreeSet<ChunkId>,
@@ -77,14 +78,14 @@ impl ReceiveState {
     pub fn state_name(&self) -> ReceiveStateName {
         match self {
             ReceiveState::AwaitingContainer { .. } => ReceiveStateName::AwaitingContainer,
-            ReceiveState::AwaitingChunks { .. } => ReceiveStateName::AwaitingChunks,
+            ReceiveState::ReceivingChunks { .. } => ReceiveStateName::ReceivingChunks,
         }
     }
 
     pub fn info(&self) -> Info {
         match self {
             ReceiveState::AwaitingContainer { info }
-            | ReceiveState::AwaitingChunks { info, .. } => *info,
+            | ReceiveState::ReceivingChunks { info, .. } => *info,
         }
     }
 }
@@ -199,11 +200,42 @@ impl Runtime {
         )?;
 
         // Switching the state
-        self.state = State::Receive(ReceiveState::AwaitingChunks {
+        self.state = State::Receive(ReceiveState::ReceivingChunks {
             info,
             total: unknown_count,
             pending: chunk_ids,
         });
+
+        Ok(())
+    }
+
+    pub(super) fn handle_chunk(
+        &mut self,
+        endpoints: &mut Endpoints,
+        chunk: Chunk,
+    ) -> Result<(), DaemonError> {
+        self.state.require_state(StateName::Receive(ReceiveStateName::ReceivingChunks))?;
+        let info = self.state.info().expect("receive state always have metadata");
+
+        let chunk_id = chunk.chunk_id();
+
+        if let Some(client_id) = info.client_id {
+            self.send_rpc(
+                endpoints,
+                client_id,
+                RpcMsg::Progress(format!("Received chunk {}", chunk_id).into()),
+            )?;
+        }
+
+        self.store.store(DB_TABLE_CHUNKS, chunk_id, &chunk)?;
+
+        // Switching the state
+        match &mut self.state {
+            State::Receive(ReceiveState::ReceivingChunks { pending, .. }) => {
+                pending.remove(&chunk_id);
+            }
+            _ => unreachable!(),
+        }
 
         Ok(())
     }
@@ -239,7 +271,7 @@ impl Runtime {
         Ok(())
     }
 
-    pub(super) fn handle_send(
+    pub(super) fn handle_send_container(
         &mut self,
         endpoints: &mut Endpoints,
         client_id: Option<ClientId>,
@@ -261,10 +293,39 @@ impl Runtime {
         self.send_p2p_reporting_client(
             endpoints,
             client_id,
-            Some("Sending container"),
+            None,
             remote_id,
             p2p::Messages::PushContainer(msg),
         );
+
+        Ok(())
+    }
+
+    pub(super) fn handle_send_chunks(
+        &mut self,
+        endpoints: &mut Endpoints,
+        storm_app: StormApp,
+        remote_id: NodeId,
+        container_id: ContainerId,
+        chunk_ids: BTreeSet<ChunkId>,
+    ) -> Result<(), DaemonError> {
+        self.state.require_state(StateName::Free)?;
+
+        for chunk_id in chunk_ids {
+            // We ignore failed chunks
+            if let Ok(Some(chunk)) = self.store.retrieve_chunk(DB_TABLE_CHUNKS, chunk_id) {
+                let _ = self.send_p2p(
+                    endpoints,
+                    remote_id,
+                    p2p::Messages::PushChunk(ChunkPush {
+                        app: storm_app,
+                        container_id,
+                        chunk_id,
+                        chunk,
+                    }),
+                );
+            }
+        }
 
         Ok(())
     }

@@ -20,12 +20,14 @@ use microservices::error::BootstrapError;
 use microservices::esb;
 use microservices::esb::{ClientId, EndpointList, Error};
 use microservices::node::TryService;
-use storm::p2p::{AppMsg, Messages, STORM_P2P_UNMARSHALLER};
+use storm::p2p::{AppMsg, ChunkPull, ChunkPush, Messages, STORM_P2P_UNMARSHALLER};
 use storm::{ContainerId, StormApp};
 use storm_ext::{ExtMsg, StormExtMsg};
-use storm_rpc::{AppContainer, RpcMsg, ServiceId};
+use storm_rpc::{AddressedMsg, AppContainer, RpcMsg, ServiceId};
 
-use crate::bus::{AddressedClientMsg, BusMsg, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus};
+use crate::bus::{
+    AddressedClientMsg, BusMsg, ChunkSend, CtlMsg, DaemonId, Endpoints, Responder, ServiceBus,
+};
 use crate::stormd::Daemon;
 use crate::{Config, DaemonError, LaunchError};
 
@@ -166,26 +168,55 @@ impl Runtime {
         }) = &message
         {
             let mesg = STORM_P2P_UNMARSHALLER.unmarshall(&**payload)?.deref().clone();
-            let mesg = match mesg {
-                // These should be processed by transfer service
-                Messages::PushContainer(AppMsg { data, .. }) => {
-                    let container_id = data.container_id();
-                    if let Some(daemon_id) = self.container_transfers.get(&container_id) {
-                        self.send_ctl(
-                            endpoints,
-                            ServiceId::Transfer(*daemon_id),
-                            CtlMsg::ProcessContainer(data),
-                        )?;
-                    } else {
-                        warn!("Got unannounced container push for {}", container_id);
-                    };
-                    return Ok(());
-                } /* Messages::PullContainer(_) => {} */
-                // Messages::Reject(_) => {}
-                // Messages::PullChunk(_) => {}
-                // Messages::PushChunk(_) => {}
-                mesg => mesg,
-            };
+
+            /* Messages::PullContainer(_) => {} */
+            // Messages::Reject(_) => {}
+            // Messages::PullChunk(_) => {}
+            // Messages::PushChunk(_) => {}
+            if matches!(
+                mesg,
+                Messages::PushContainer(_) | Messages::PullChunk(_) | Messages::PushChunk(_)
+            ) {
+                // TODO: Ensure that the incoming chunks references correct app id and message id
+                let (container_id, instr) = match mesg {
+                    // These should be processed by transfer service
+                    Messages::PushContainer(AppMsg { app, data }) => {
+                        (data.container_id(), CtlMsg::ProcessContainer(data))
+                    }
+                    Messages::PullChunk(ChunkPull {
+                        app,
+                        message_id,
+                        container_id,
+                        chunk_ids,
+                    }) => (
+                        container_id,
+                        CtlMsg::SendChunks(AddressedMsg {
+                            remote_id,
+                            data: ChunkSend {
+                                storm_app: app,
+                                container_id,
+                                chunk_ids,
+                            },
+                        }),
+                    ),
+                    Messages::PushChunk(ChunkPush {
+                        app,
+                        container_id,
+                        chunk_id,
+                        chunk,
+                    }) => (container_id, CtlMsg::ProcessChunk(chunk)),
+                    _ => unreachable!(),
+                };
+
+                if let Some(daemon_id) = self.container_transfers.get(&container_id) {
+                    self.send_ctl(endpoints, ServiceId::Transfer(*daemon_id), instr)?;
+                } else {
+                    warn!("Got unannounced chunk pull for {}", container_id);
+                };
+
+                return Ok(());
+            }
+
             match mesg.storm_ext_msg(remote_id) {
                 Ok((app, storm_msg)) => self.send_ext(endpoints, Some(app), storm_msg)?,
 
