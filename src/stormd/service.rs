@@ -411,14 +411,18 @@ impl Runtime {
     }
 
     fn pick_task(&mut self, endpoints: &mut Endpoints) -> Result<bool, esb::Error<ServiceId>> {
-        let msg = match self.ctl_queue.pop_front() {
-            None => return Ok(true),
-            Some(req) => req,
-        };
+        if self.ctl_queue.is_empty() {
+            return Ok(true);
+        }
 
         let (service, daemon_id) = match self.transferd_free.front() {
             Some(damon_id) => (ServiceId::Transfer(*damon_id), *damon_id),
             None => return Ok(false),
+        };
+
+        let msg = match self.ctl_queue.pop_front() {
+            None => return Ok(true),
+            Some(req) => req,
         };
 
         debug!("Assigning task {} to {}", msg, service);
