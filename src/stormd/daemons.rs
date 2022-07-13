@@ -45,7 +45,7 @@ impl Launcher for Daemon {
         cmd.args(
             std::env::args()
                 .skip(1)
-                .filter(|arg| !["--chat"].iter().any(|pat| arg.starts_with(pat))),
+                .filter(|arg| !["--chat", "--downpour"].iter().any(|pat| arg.starts_with(pat))),
         );
 
         Ok(())
