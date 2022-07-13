@@ -8,11 +8,15 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
+use std::fmt::{self, Display, Formatter};
+
 use internet2::addr::NodeId;
 use internet2::presentation;
 use microservices::rpc;
 use microservices::util::OptionDetails;
+use storm::p2p::AppMsg;
 use storm::{ContainerFullId, StormApp};
+use strict_encoding::{StrictDecode, StrictEncode};
 
 use crate::FailureCode;
 
@@ -52,13 +56,19 @@ pub enum RpcMsg {
      */
     /// Send a chat message to the remote peer. The peer must be connected.
     #[display("send_chat({0})")]
-    SendChat(ChatBulb),
+    SendChat(AddressedMsg<String>),
 
     #[display("send({0})")]
-    SendContainer(ContainerAddr),
+    SendContainer(AddressedMsg<AppContainer>),
 
     #[display("receive({0})")]
-    GetContainer(ContainerAddr),
+    GetContainer(AddressedMsg<AppContainer>),
+
+    #[display("store(...)")]
+    StoreFile(AddressedMsg<Vec<u8>>),
+
+    #[display("retrieve(...)")]
+    RetrieveFile(AddressedMsg<Vec<u8>>),
 
     // Responses to CLI
     // ----------------
@@ -80,24 +90,42 @@ pub enum RpcMsg {
 pub enum RadioMsg {
     #[display("recv_chat({0})")]
     #[from]
-    Received(ChatBulb),
+    Received(AddressedMsg<String>),
+}
+
+#[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug, NetworkEncode, NetworkDecode)]
+pub struct AddressedMsg<T>
+where T: StrictEncode + StrictDecode
+{
+    pub remote_id: NodeId,
+    pub data: T,
+}
+
+impl<T> Display for AddressedMsg<T>
+where T: Display + StrictEncode + StrictDecode
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}", self.remote_id, self.data)
+    }
+}
+
+impl<T> AddressedMsg<T>
+where T: StrictEncode + StrictDecode
+{
+    pub fn with(app_msg: AppMsg<T>, remote_peer: NodeId) -> Self {
+        AddressedMsg {
+            remote_id: remote_peer,
+            data: app_msg.data,
+        }
+    }
 }
 
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug, Display)]
 #[derive(NetworkEncode, NetworkDecode)]
-#[display("{container_id}~{remote_id}")]
-pub struct ContainerAddr {
-    pub remote_id: NodeId,
+#[display("{storm_app}:{container_id}")]
+pub struct AppContainer {
     pub storm_app: StormApp,
     pub container_id: ContainerFullId,
-}
-
-#[derive(Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug, Display)]
-#[derive(NetworkEncode, NetworkDecode)]
-#[display("{remote_id}: {text}")]
-pub struct ChatBulb {
-    pub remote_id: NodeId,
-    pub text: String,
 }
 
 impl From<presentation::Error> for RpcMsg {

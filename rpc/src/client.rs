@@ -15,8 +15,8 @@ use internet2::addr::{NodeId, ServiceAddr};
 use internet2::ZmqSocketType;
 use microservices::esb::{self, BusId, ClientId, PollItem};
 
-use crate::messages::{ChatBulb, RadioMsg};
-use crate::{BusMsg, Error, RpcMsg, ServiceId};
+use crate::messages::RadioMsg;
+use crate::{AddressedMsg, BusMsg, Error, RpcMsg, ServiceId};
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display)]
 enum Bus {
@@ -107,16 +107,22 @@ impl Client {
 
 impl Client {
     pub fn chat_tell(&mut self, remote_id: NodeId, text: String) -> Result<(), Error> {
-        self.request(RpcMsg::SendChat(ChatBulb { remote_id, text }), ServiceId::chatd())
+        self.request(
+            RpcMsg::SendChat(AddressedMsg {
+                remote_id,
+                data: text,
+            }),
+            ServiceId::chatd(),
+        )
     }
 
     pub fn chat_recv(&mut self, from_remote_id: NodeId) -> Result<String, Error> {
         let poll = self.response()?;
         match poll.request {
-            BusMsg::Chat(RadioMsg::Received(ChatBulb { remote_id, text }))
+            BusMsg::Chat(RadioMsg::Received(AddressedMsg { remote_id, data }))
                 if remote_id == from_remote_id =>
             {
-                Ok(text)
+                Ok(data)
             }
             _ => Err(Error::UnexpectedServerResponse),
         }

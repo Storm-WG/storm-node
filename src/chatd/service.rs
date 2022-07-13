@@ -16,8 +16,8 @@ use microservices::error::BootstrapError;
 use microservices::esb::{self, ClientId, EndpointList, Error};
 use microservices::node::TryService;
 use storm::Mesg;
-use storm_ext::{AddressedMsg, ExtMsg};
-use storm_rpc::{ChatBulb, RpcMsg, ServiceId};
+use storm_ext::ExtMsg;
+use storm_rpc::{AddressedMsg, RpcMsg, ServiceId};
 
 use crate::bus::{BusMsg, CtlMsg, Endpoints, Responder, ServiceBus};
 use crate::{Config, DaemonError, LaunchError};
@@ -136,9 +136,9 @@ impl Runtime {
     ) -> Result<(), DaemonError> {
         match message {
             ExtMsg::Post(AddressedMsg { remote_id, data }) => {
-                let chat_msg = ChatBulb {
+                let chat_msg = AddressedMsg {
                     remote_id,
-                    text: String::from_utf8_lossy(&data.body).to_string(),
+                    data: String::from_utf8_lossy(&data.body).to_string(),
                 };
                 self.send_radio(endpoints, chat_msg)?;
             }
@@ -158,12 +158,12 @@ impl Runtime {
         message: RpcMsg,
     ) -> Result<(), DaemonError> {
         match message {
-            RpcMsg::SendChat(ChatBulb { remote_id, text }) => {
+            RpcMsg::SendChat(AddressedMsg { remote_id, data }) => {
                 let addressed_msg = AddressedMsg {
                     remote_id,
                     data: Mesg {
                         parent_id: none!(),
-                        body: text.into_bytes(),
+                        body: data.into_bytes(),
                         container_ids: empty!(),
                     },
                 };

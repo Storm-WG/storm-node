@@ -61,6 +61,7 @@ pub enum ServiceId {
 impl ServiceId {
     pub fn stormd() -> ServiceId { ServiceId::MsgApp(BifrostApp::Storm) }
     pub fn chatd() -> ServiceId { ServiceId::StormApp(StormApp::Chat) }
+    pub fn downpourd() -> ServiceId { ServiceId::StormApp(StormApp::FileTransfer) }
 }
 
 impl esb::ServiceAddress for ServiceId {}

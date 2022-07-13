@@ -8,25 +8,10 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-#[macro_use]
-extern crate amplify;
-#[macro_use]
-extern crate internet2;
-#[macro_use]
-extern crate log;
-#[macro_use]
-extern crate strict_encoding;
-
-mod config;
-mod error;
-pub mod stormd;
-pub mod transferd;
-pub mod downpourd;
-pub mod chatd;
-pub mod bus;
+mod service;
 #[cfg(feature = "server")]
-pub mod opts;
+mod opts;
 
-pub use config::Config;
-pub(crate) use error::DaemonError;
-pub use error::LaunchError;
+#[cfg(feature = "server")]
+pub use opts::Opts;
+pub use service::{run, Runtime};

@@ -38,7 +38,7 @@ strict_encoding = "0.8.0"
 commit_verify = "0.8.0"
 internet2 = { version = "0.8.0", features = ["keygen", "zmq"] }
 microservices = { version = "0.8.7", default-features = false, features = ["node"] }
-storm-core = "0.8.0-alpha.1"
+storm-core = "0.8.0-alpha.4"
 storm_ext = { version = "0.8.0-alpha.2", path = "ext" }
 storm_rpc = { version = "0.8.0-alpha.2", path = "rpc" }
 store_rpc = "0.8.0-rc.4"

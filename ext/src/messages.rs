@@ -9,13 +9,13 @@
 // If not, see <https://opensource.org/licenses/MIT>.
 
 use std::collections::BTreeSet;
-use std::fmt::{self, Display, Formatter};
 
 use internet2::addr::NodeId;
 use microservices::rpc;
 use storm::p2p::{self, AppMsg};
 use storm::{Mesg, MesgId, StormApp, Topic};
-use strict_encoding::{StrictDecode, StrictEncode};
+use storm_rpc::AddressedMsg;
+use strict_encoding::StrictEncode;
 
 /// We need this wrapper type to be compatible with Storm Node having multiple message buses
 #[derive(Clone, Debug, Display, From, Api)]
@@ -181,32 +181,5 @@ impl ExtMsg {
             ExtMsg::Accept(AddressedMsg { data, .. }) => data.strict_serialize(),
         }
         .expect("extension-generated message can't be serialized as a bifrost message payload")
-    }
-}
-
-#[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug, NetworkEncode, NetworkDecode)]
-pub struct AddressedMsg<T>
-where T: StrictEncode + StrictDecode
-{
-    pub remote_id: NodeId,
-    pub data: T,
-}
-
-impl<T> Display for AddressedMsg<T>
-where T: Display + StrictEncode + StrictDecode
-{
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}, {}", self.remote_id, self.data)
-    }
-}
-
-impl<T> AddressedMsg<T>
-where T: StrictEncode + StrictDecode
-{
-    pub fn with(app_msg: AppMsg<T>, remote_peer: NodeId) -> Self {
-        AddressedMsg {
-            remote_id: remote_peer,
-            data: app_msg.data,
-        }
     }
 }

@@ -23,7 +23,7 @@ extern crate serde_crate as serde;
 mod messages;
 
 use internet2::{CreateUnmarshaller, Unmarshaller};
-pub use messages::{AddressedMsg, ExtMsg, StormExtMsg};
+pub use messages::{ExtMsg, StormExtMsg};
 use once_cell::sync::Lazy;
 
 #[cfg(any(target_os = "linux"))]

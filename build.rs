@@ -9,9 +9,6 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-#[macro_use]
-extern crate clap;
-
 use std::fs;
 
 use clap::IntoApp;
@@ -31,13 +28,21 @@ pub mod transferd {
 pub mod chatd {
     include!("src/chatd/opts.rs");
 }
+pub mod downpourd {
+    include!("src/downpourd/opts.rs");
+}
 
 fn main() -> Result<(), configure_me_codegen::Error> {
     let outdir = "./shell";
 
     fs::create_dir_all(outdir).expect("failed to create shell dir");
-    for app in
-        [stormd::Opts::command(), transferd::Opts::command(), chatd::Opts::command()].iter_mut()
+    for app in [
+        stormd::Opts::command(),
+        transferd::Opts::command(),
+        chatd::Opts::command(),
+        downpourd::Opts::command(),
+    ]
+    .iter_mut()
     {
         let name = app.get_name().to_string();
         generate_to(Bash, app, &name, &outdir)?;
