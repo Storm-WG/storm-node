@@ -264,7 +264,7 @@ impl Runtime {
     ) -> Result<(), DaemonError> {
         self.state.require_state(StateName::Free)?;
 
-        debug!("Got announcement for {}", id.container_id);
+        debug!("Sending announcement for {}", id.container_id);
 
         let header_chunk = self
             .store

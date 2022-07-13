@@ -26,6 +26,7 @@ use crate::{Config, DaemonError, LaunchError};
 pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
     let rpc_endpoint = config.rpc_endpoint.clone();
     let ctl_endpoint = config.ctl_endpoint.clone();
+    let msg_endpoint = config.msg_endpoint.clone();
     let runtime = Runtime::init(config)?;
 
     debug!("Connecting to service buses {}, {}", rpc_endpoint, ctl_endpoint);
@@ -35,6 +36,11 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
                 rpc_endpoint,
                 ZmqSocketType::RouterConnect,
                 Some(ServiceId::stormd())
+            ),
+            ServiceBus::Msg => esb::BusConfig::with_addr(
+                msg_endpoint,
+                ZmqSocketType::RouterConnect,
+                Some(ServiceId::Lnp)
             ),
             ServiceBus::Ctl => esb::BusConfig::with_addr(
                 ctl_endpoint,

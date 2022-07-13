@@ -17,8 +17,8 @@ extern crate log;
 
 use clap::Parser;
 use microservices::error::BootstrapError;
-use storm_node::chatd::Opts;
-use storm_node::{chatd, Config, LaunchError};
+use storm_node::downpourd::Opts;
+use storm_node::{downpourd, Config, LaunchError};
 
 fn main() -> Result<(), BootstrapError<LaunchError>> {
     println!("downpourd: file transfer microservice");
@@ -45,7 +45,7 @@ fn main() -> Result<(), BootstrapError<LaunchError>> {
      */
 
     debug!("Starting runtime ...");
-    chatd::run(config).expect("running downpourd runtime");
+    downpourd::run(config).expect("running downpourd runtime");
 
     unreachable!()
 }

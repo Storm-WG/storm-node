@@ -25,13 +25,9 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
     let rpc_endpoint = config.rpc_endpoint.clone();
     let ctl_endpoint = config.ctl_endpoint.clone();
     let ext_endpoint = config.ext_endpoint.clone();
-    let chat_endpoint = config.chat_endpoint.clone();
     let runtime = Runtime::init(config)?;
 
-    debug!(
-        "Connecting to service buses {}, {}, {}, {}",
-        rpc_endpoint, ctl_endpoint, ext_endpoint, chat_endpoint
-    );
+    debug!("Connecting to service buses {}, {}, {}", rpc_endpoint, ctl_endpoint, ext_endpoint);
     let controller = esb::Controller::with(
         map! {
             ServiceBus::Storm => esb::BusConfig::with_addr(
@@ -48,11 +44,6 @@ pub fn run(config: Config) -> Result<(), BootstrapError<LaunchError>> {
                 ctl_endpoint,
                 ZmqSocketType::RouterConnect,
                 Some(ServiceId::stormd())
-            ),
-            ServiceBus::Chat => esb::BusConfig::with_subscription(
-                chat_endpoint,
-                ZmqSocketType::Pub,
-                None
             )
         },
         runtime,
