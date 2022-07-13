@@ -8,8 +8,13 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
+use std::path::PathBuf;
+
 use internet2::addr::{NodeId, PartialSocketAddr, ServiceAddr};
 use lnp_rpc::LNP_NODE_RPC_ENDPOINT;
+use stens::AsciiString;
+use store_rpc::STORED_RPC_ENDPOINT;
+use storm::ContainerId;
 use storm_rpc::{CHATD_RPC_ENDPOINT, STORM_NODE_RPC_ENDPOINT};
 
 /// Command-line tool for working with store daemon
@@ -28,6 +33,18 @@ pub struct Opts {
         env = "STORM_NODE_RPC_ENDPOINT"
     )]
     pub storm_endpoint: ServiceAddr,
+
+    /// ZMQ socket for connecting storage daemon.
+    ///
+    /// Socket can be either TCP address in form of `<ipv4 | ipv6>:<port>` – or a path
+    /// to an IPC file.
+    #[clap(
+        long = "store",
+        global = true,
+        env = "STORED_RPC_ENDPOINT",
+        default_value = STORED_RPC_ENDPOINT,
+    )]
+    pub store_endpoint: ServiceAddr,
 
     /// ZMQ socket for chat daemon PUB/SUB API.
     ///
@@ -69,6 +86,7 @@ pub struct Opts {
 /// Command-line commands:
 #[derive(Subcommand, Clone, PartialEq, Eq, Debug, Display)]
 pub enum Command {
+    /// Listen for the incoming chat messages from a remote peer.
     #[display("chat-listen")]
     ChatListen {
         /// Remote node address to force connection (re)establishment
@@ -79,6 +97,7 @@ pub enum Command {
         peer: NodeId,
     },
 
+    /// Send typed-in messages to another peer.
     #[display("chat-send")]
     ChatSend {
         /// Remote node address to force connection (re)establishment
@@ -87,5 +106,28 @@ pub enum Command {
 
         /// Remote node id (public key).
         peer: NodeId,
+    },
+
+    /// Convert on-disk file into a container in the Store database.
+    FileContainerize {
+        /// MIME file type
+        #[clap(short, long, default_value = "application/octet-stream")]
+        mime: AsciiString,
+
+        /// Local file for containerization.
+        path: PathBuf,
+
+        /// Information about the container
+        #[clap()]
+        info: Option<String>,
+    },
+
+    /// Assemble a file from a Store database-present container and save as a file.
+    FileAssemble {
+        /// ID of the container to assemble into a file.
+        container_id: ContainerId,
+
+        /// Path and filename to save the file.
+        path: PathBuf,
     },
 }

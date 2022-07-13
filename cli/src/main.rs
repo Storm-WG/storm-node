@@ -57,7 +57,15 @@ fn main() {
     let mut lnp_client =
         lnp_rpc::Client::with(lnp_endpoint.clone()).expect("Error initializing LNP client");
 
+    let store_endpoint = &mut opts.store_endpoint;
+    if let ServiceAddr::Ipc(ref mut path) = store_endpoint {
+        *path = shellexpand::tilde(path).to_string();
+    }
+    debug!("STORE RPC socket {}", store_endpoint);
+    let mut store_client =
+        store_rpc::Client::with(&store_endpoint.clone()).expect("Error initializing store client");
+
     trace!("Executing command: {}", opts.command);
-    opts.exec(&mut storm_client, &mut lnp_client)
+    opts.exec(&mut storm_client, &mut store_client, &mut lnp_client)
         .unwrap_or_else(|err| eprintln!("{} {}\n", "Error:".err(), err.err_details()));
 }

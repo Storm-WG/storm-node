@@ -8,12 +8,16 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-use std::io;
-use std::io::BufRead;
+use std::io::{BufRead, Write};
+use std::{fs, io};
 
+use amplify::num::u24;
 use amplify::IoError;
 use internet2::addr::PartialNodeAddr;
 use lnp::addr::LnpAddr;
+use microservices::rpc::ServerError;
+use storm::{Chunk, Container};
+use strict_encoding::{MediumVec, StrictDecode, StrictEncode};
 
 use crate::{Command, Opts};
 
@@ -28,6 +32,9 @@ pub enum Error {
     Storm(storm_rpc::Error),
 
     #[from]
+    Store(ServerError<store_rpc::FailureCode>),
+
+    #[from]
     Lnp(lnp_rpc::Error),
 
     #[from]
@@ -38,6 +45,7 @@ impl Opts {
     pub fn exec(
         self,
         storm_client: &mut storm_rpc::Client,
+        store_client: &mut store_rpc::Client,
         lnp_client: &mut lnp_rpc::Client,
     ) -> Result<(), Error> {
         debug!("Performing {:?}", self.command);
@@ -61,6 +69,49 @@ impl Opts {
                     let line = storm_client.chat_recv(peer)?;
                     println!("> {}", line);
                 }
+            }
+            Command::FileContainerize { mime, path, info } => {
+                let data = fs::read(path)?;
+                let mut chunk_ids = MediumVec::new();
+                let size = data.len() as u64;
+                for piece in data.chunks(u24::MAX.into_usize()) {
+                    let chunk = Chunk::try_from(piece)?;
+                    let chunk_id = chunk.chunk_id();
+                    store_client.store(storm_rpc::DB_TABLE_CHUNKS, chunk_id, &chunk)?;
+                    chunk_ids.push(chunk_id)?;
+                }
+
+                let total_chunks = chunk_ids.len();
+                let container = Container {
+                    version: 0,
+                    mime,
+                    info: info.unwrap_or_default(),
+                    size,
+                    chunks: chunk_ids,
+                };
+                let id = container.container_id();
+                let container_chunk = Chunk::try_from(container.strict_serialize()?)?;
+                store_client.store(storm_rpc::DB_TABLE_CONTAINERS, id, &container_chunk)?;
+                eprint!("Containerized with id ");
+                print!("{}", id);
+                eprintln!(" ({} chunks in total)", total_chunks);
+            }
+            Command::FileAssemble { container_id, path } => {
+                let container_chunk = store_client
+                    .retrieve_chunk(storm_rpc::DB_TABLE_CONTAINERS, container_id)?
+                    .expect("No container with the provided id");
+                let container = Container::strict_deserialize(container_chunk)?;
+                println!("Size: {} bytes", container.size);
+                println!("MIME: {}", container.mime);
+                println!("Info: {}", container.info);
+                let mut file = fs::File::create(&path)?;
+                for chunk_id in container.chunks {
+                    let chunk = store_client
+                        .retrieve_chunk(storm_rpc::DB_TABLE_CHUNKS, chunk_id)?
+                        .expect(&format!("Chunk {} is absent", chunk_id));
+                    file.write_all(chunk.as_slice())?;
+                }
+                eprintln!("Saved to {}", path.display());
             }
         }
         Ok(())

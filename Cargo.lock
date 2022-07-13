@@ -2088,6 +2088,8 @@ dependencies = [
  "log",
  "microservices",
  "shellexpand",
+ "stens",
+ "store_rpc",
  "storm-core",
  "storm_rpc",
  "strict_encoding",
@@ -2095,14 +2097,15 @@ dependencies = [
 
 [[package]]
 name = "storm-core"
-version = "0.8.0-alpha.4"
+version = "0.8.0-beta.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e42fa49153711da0a5aefd4157b65d74fd038cc0217b171464168981dfa2c3ed"
+checksum = "6d87472c1a03d099b34062faa0c16f1c480d7e33ab4d2be7b021ac7f5d82afbe"
 dependencies = [
  "amplify",
  "bitcoin_hashes",
  "commit_verify",
  "internet2",
+ "lnpbp_bech32",
  "once_cell",
  "stens",
  "strict_encoding",

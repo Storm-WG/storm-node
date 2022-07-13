@@ -39,3 +39,6 @@ pub use service_id::ServiceId;
 
 pub const STORM_NODE_RPC_ENDPOINT: &str = "0.0.0.0:64964";
 pub const CHATD_RPC_ENDPOINT: &str = "0.0.0.0:40940";
+
+pub const DB_TABLE_CONTAINERS: &'static str = "containers";
+pub const DB_TABLE_CHUNKS: &'static str = "chunks";
