@@ -134,6 +134,22 @@ impl Runtime {
                 self.handle_receive(endpoints, client_id, storm_app, remote_id, container_id)?;
             }
 
+            CtlMsg::ProcessContainer(container) => {
+                self.handle_container(endpoints, container)?;
+            }
+
+            CtlMsg::AnnounceContainer(AddressedClientMsg {
+                remote_id,
+                client_id,
+                data:
+                    AppContainer {
+                        storm_app,
+                        container_id,
+                    },
+            }) => {
+                self.handle_announce(endpoints, client_id, storm_app, remote_id, container_id)?;
+            }
+
             CtlMsg::SendContainer(AddressedClientMsg {
                 remote_id,
                 client_id,

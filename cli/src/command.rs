@@ -48,6 +48,10 @@ impl Opts {
         store_client: &mut store_rpc::Client,
         lnp_client: &mut lnp_rpc::Client,
     ) -> Result<(), Error> {
+        let progress = |info| {
+            println!("{}", info);
+        };
+
         debug!("Performing {:?}", self.command);
         match self.command {
             Command::ChatSend { connect, peer } => {
@@ -70,7 +74,7 @@ impl Opts {
                     println!("> {}", line);
                 }
             }
-            Command::FileContainerize { mime, path, info } => {
+            Command::Containerize { mime, path, info } => {
                 let data = fs::read(path)?;
                 let mut chunk_ids = MediumVec::new();
                 let size = data.len() as u64;
@@ -96,13 +100,13 @@ impl Opts {
                 let container_chunk = Chunk::try_from(container.strict_serialize()?)?;
 
                 let id = container.container_id();
-                store_client.store(storm_rpc::DB_TABLE_CONTAINERS, id, &header_chunk)?;
+                store_client.store(storm_rpc::DB_TABLE_CONTAINER_HEADERS, id, &header_chunk)?;
                 store_client.store(storm_rpc::DB_TABLE_CONTAINERS, id, &container_chunk)?;
                 eprint!("Containerized with id ");
                 print!("{}", id);
                 eprintln!(" ({} chunks in total)", total_chunks);
             }
-            Command::FileAssemble { container_id, path } => {
+            Command::Assemble { container_id, path } => {
                 let container_chunk = store_client
                     .retrieve_chunk(storm_rpc::DB_TABLE_CONTAINERS, container_id)?
                     .expect("No container with the provided id");
@@ -118,6 +122,28 @@ impl Opts {
                     file.write_all(chunk.as_slice())?;
                 }
                 eprintln!("Saved to {}", path.display());
+            }
+            Command::Upload {
+                connect,
+                peer,
+                container_id,
+            } => {
+                if let Some(addr) = connect {
+                    let remote_node = PartialNodeAddr { id: peer, addr };
+                    lnp_client.connect(LnpAddr::bifrost(remote_node))?;
+                }
+                storm_client.upload(peer, container_id, progress)?;
+            }
+            Command::Download {
+                connect,
+                peer,
+                container_id,
+            } => {
+                if let Some(addr) = connect {
+                    let remote_node = PartialNodeAddr { id: peer, addr };
+                    lnp_client.connect(LnpAddr::bifrost(remote_node))?;
+                }
+                storm_client.download(peer, container_id, progress)?;
             }
         }
         Ok(())

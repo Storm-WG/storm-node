@@ -8,7 +8,7 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-use std::collections::{BTreeSet, VecDeque};
+use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 use std::ops::Deref;
 
 use internet2::addr::NodeId;
@@ -20,8 +20,8 @@ use microservices::error::BootstrapError;
 use microservices::esb;
 use microservices::esb::{ClientId, EndpointList, Error};
 use microservices::node::TryService;
-use storm::p2p::{Messages, STORM_P2P_UNMARSHALLER};
-use storm::StormApp;
+use storm::p2p::{AppMsg, Messages, STORM_P2P_UNMARSHALLER};
+use storm::{ContainerId, StormApp};
 use storm_ext::{ExtMsg, StormExtMsg};
 use storm_rpc::{AppContainer, RpcMsg, ServiceId};
 
@@ -74,7 +74,8 @@ pub struct Runtime {
     pub(super) registered_apps: BTreeSet<StormApp>,
 
     pub(crate) transferd_free: VecDeque<DaemonId>,
-    pub(crate) transferd_busy: BTreeSet<DaemonId>,
+    pub(crate) transferd_busy: HashSet<DaemonId>,
+    pub(crate) container_transfers: HashMap<ContainerId, DaemonId>,
     pub(crate) ctl_queue: VecDeque<CtlMsg>,
 }
 
@@ -90,6 +91,7 @@ impl Runtime {
             registered_apps: empty!(),
             transferd_free: empty!(),
             transferd_busy: empty!(),
+            container_transfers: empty!(),
             ctl_queue: empty!(),
         })
     }
@@ -164,6 +166,26 @@ impl Runtime {
         }) = &message
         {
             let mesg = STORM_P2P_UNMARSHALLER.unmarshall(&**payload)?.deref().clone();
+            let mesg = match mesg {
+                // These should be processed by transfer service
+                Messages::PushContainer(AppMsg { data, .. }) => {
+                    let container_id = data.container_id();
+                    if let Some(daemon_id) = self.container_transfers.get(&container_id) {
+                        self.send_ctl(
+                            endpoints,
+                            ServiceId::Transfer(*daemon_id),
+                            CtlMsg::ProcessContainer(data),
+                        )?;
+                    } else {
+                        warn!("Got unannounced container push for {}", container_id);
+                    };
+                    return Ok(());
+                } /* Messages::PullContainer(_) => {} */
+                // Messages::Reject(_) => {}
+                // Messages::PullChunk(_) => {}
+                // Messages::PushChunk(_) => {}
+                mesg => mesg,
+            };
             match mesg.storm_ext_msg(remote_id) {
                 Ok((app, storm_msg)) => self.send_ext(endpoints, Some(app), storm_msg)?,
 
@@ -179,14 +201,6 @@ impl Runtime {
                 // A remote peer described list of apps. We need to report that to a client.
                 Err(Messages::ActiveApps(_)) => {}
 
-                // These should be processed by transfer service
-                /*
-                Messages::PullContainer(_) => {}
-                Messages::PushContainer(_) => {}
-                Messages::Reject(_) => {}
-                Messages::PullChunk(_) => {}
-                Messages::PushChunk(_) => {}
-                 */
                 _ => {}
             }
         } else {
@@ -204,7 +218,16 @@ impl Runtime {
     ) -> Result<(), DaemonError> {
         match message {
             RpcMsg::SendContainer(container) => {
-                self.ctl_queue.push_back(CtlMsg::SendContainer(AddressedClientMsg {
+                self.ctl_queue.push_back(CtlMsg::AnnounceContainer(AddressedClientMsg {
+                    remote_id: container.remote_id,
+                    client_id: Some(client_id),
+                    data: container.data,
+                }));
+                self.pick_or_start(endpoints, Some(client_id))
+            }
+
+            RpcMsg::GetContainer(container) => {
+                self.ctl_queue.push_back(CtlMsg::GetContainer(AddressedClientMsg {
                     remote_id: container.remote_id,
                     client_id: Some(client_id),
                     data: container.data,
@@ -232,6 +255,23 @@ impl Runtime {
                     self.pick_task(endpoints)?;
                 }
                 // TODO: Register other daemons
+            }
+
+            CtlMsg::ProcessingFailed | CtlMsg::ProcessingComplete => {
+                if let ServiceId::Transfer(daemon_id) = source {
+                    if let Some(pos) = self
+                        .container_transfers
+                        .iter()
+                        .find(|(_, id)| daemon_id == **id)
+                        .map(|(a, _)| a)
+                        .copied()
+                    {
+                        self.container_transfers.remove(&pos);
+                    }
+                    self.transferd_busy.remove(&daemon_id);
+                    self.transferd_free.push_back(daemon_id);
+                    self.pick_task(endpoints)?;
+                }
             }
 
             wrong_msg => {
@@ -271,6 +311,18 @@ impl Runtime {
 
             ExtMsg::RetrieveContainer(container) => {
                 self.ctl_queue.push_back(CtlMsg::GetContainer(AddressedClientMsg {
+                    remote_id: container.remote_id,
+                    client_id: None,
+                    data: AppContainer {
+                        storm_app: app,
+                        container_id: container.data,
+                    },
+                }));
+                self.pick_or_start(endpoints, None)?;
+            }
+
+            ExtMsg::SendContainer(container) => {
+                self.ctl_queue.push_back(CtlMsg::SendContainer(AddressedClientMsg {
                     remote_id: container.remote_id,
                     client_id: None,
                     data: AppContainer {
@@ -326,9 +378,25 @@ impl Runtime {
             None => return Ok(false),
         };
 
+        let container_id = match msg {
+            CtlMsg::GetContainer(AddressedClientMsg {
+                data: AppContainer { container_id, .. },
+                ..
+            })
+            | CtlMsg::SendContainer(AddressedClientMsg {
+                data: AppContainer { container_id, .. },
+                ..
+            }) => Some(container_id.container_id),
+            _ => None,
+        };
         self.send_ctl(endpoints, service, msg)?;
+
+        if let Some(container_id) = container_id {
+            self.container_transfers.insert(container_id, daemon_id);
+        }
         self.transferd_free.pop_front();
         self.transferd_busy.insert(daemon_id);
+
         Ok(true)
     }
 

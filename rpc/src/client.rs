@@ -14,9 +14,11 @@ use std::time::Duration;
 use internet2::addr::{NodeId, ServiceAddr};
 use internet2::ZmqSocketType;
 use microservices::esb::{self, BusId, ClientId, PollItem};
+use microservices::util::OptionDetails;
+use storm::{ContainerFullId, ContainerId, StormApp};
 
 use crate::messages::RadioMsg;
-use crate::{AddressedMsg, BusMsg, Error, RpcMsg, ServiceId};
+use crate::{AddressedMsg, AppContainer, BusMsg, Error, RpcMsg, ServiceId};
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display)]
 enum Bus {
@@ -103,6 +105,36 @@ impl Client {
             }
         }
     }
+
+    fn progressive_request(
+        &mut self,
+        request: impl Into<RpcMsg>,
+        service_id: ServiceId,
+        progress: impl Fn(String),
+    ) -> Result<(), Error> {
+        self.request(request, service_id)?;
+        loop {
+            match self.response()?.request {
+                BusMsg::Rpc(rpc) => match rpc.failure_to_error()? {
+                    RpcMsg::Success(OptionDetails(Some(info))) => {
+                        return {
+                            progress(format!("Success. {}", info));
+                            Ok(())
+                        }
+                    }
+                    RpcMsg::Success(OptionDetails(None)) => {
+                        return {
+                            progress(s!("Success"));
+                            Ok(())
+                        }
+                    }
+                    RpcMsg::Progress(info) => progress(info),
+                    _ => return Err(Error::UnexpectedServerResponse),
+                },
+                _ => return Err(Error::UnexpectedServerResponse),
+            }
+        }
+    }
 }
 
 impl Client {
@@ -126,6 +158,56 @@ impl Client {
             }
             _ => Err(Error::UnexpectedServerResponse),
         }
+    }
+
+    pub fn upload(
+        &mut self,
+        remote_id: NodeId,
+        container_id: ContainerId,
+        progress: impl Fn(String),
+    ) -> Result<(), Error> {
+        let msg = AddressedMsg {
+            remote_id,
+            data: AppContainer {
+                storm_app: StormApp::FileTransfer,
+                container_id: ContainerFullId {
+                    // FIXME
+                    message_id: zero!(),
+                    container_id,
+                },
+            },
+        };
+        self.progressive_request(
+            RpcMsg::SendContainer(msg),
+            // TODO: Send to downpourd
+            ServiceId::stormd(),
+            progress,
+        )
+    }
+
+    pub fn download(
+        &mut self,
+        remote_id: NodeId,
+        container_id: ContainerId,
+        progress: impl Fn(String),
+    ) -> Result<(), Error> {
+        let msg = AddressedMsg {
+            remote_id,
+            data: AppContainer {
+                storm_app: StormApp::FileTransfer,
+                container_id: ContainerFullId {
+                    // FIXME
+                    message_id: zero!(),
+                    container_id,
+                },
+            },
+        };
+        self.progressive_request(
+            RpcMsg::GetContainer(msg),
+            // TODO: Send to downpourd
+            ServiceId::stormd(),
+            progress,
+        )
     }
 }
 

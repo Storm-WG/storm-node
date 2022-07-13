@@ -13,7 +13,6 @@ use internet2::TypedEnum;
 use lnp2p::bifrost;
 use lnp2p::bifrost::BifrostApp;
 use microservices::esb::ClientId;
-use microservices::util::OptionDetails;
 use microservices::{esb, rpc};
 use storm::{p2p, StormApp};
 use storm_ext::ExtMsg;
@@ -63,20 +62,19 @@ where
         &self,
         endpoints: &mut Endpoints,
         client_id: Option<ClientId>,
-        client_message: impl Into<OptionDetails>,
+        client_message: Option<&str>,
         remote_id: NodeId,
         message: impl Into<p2p::Messages>,
     ) {
-        let client_message = client_message.into();
         // We have nobody to report the failure to
         let _ = match self.send_p2p(endpoints, remote_id, message) {
             Ok(_) => {
-                if let Some(client_message) = client_message.0 {
-                    if let Some(client_id) = client_id {
-                        self.send_rpc(endpoints, client_id, RpcMsg::Progress(client_message))
-                    } else {
-                        Ok(())
-                    }
+                if let Some(client_id) = client_id {
+                    let reply = match client_message {
+                        None => RpcMsg::Success(None.into()),
+                        Some(report) => RpcMsg::Progress(report.to_owned()),
+                    };
+                    self.send_rpc(endpoints, client_id, reply)
                 } else {
                     Ok(())
                 }

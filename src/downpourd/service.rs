@@ -136,7 +136,6 @@ impl Runtime {
     ) -> Result<(), DaemonError> {
         match message {
             ExtMsg::ContainerAnnouncement(AddressedMsg { remote_id, data }) => {
-                // For now we are retrieving all containers
                 self.send_ext(
                     endpoints,
                     None,
@@ -146,6 +145,15 @@ impl Runtime {
                     }),
                 )?;
             }
+
+            ExtMsg::RetrieveContainer(AddressedMsg { remote_id, data }) => {
+                self.send_ext(
+                    endpoints,
+                    None,
+                    ExtMsg::SendContainer(AddressedMsg { remote_id, data }),
+                )?;
+            }
+
             wrong_msg => {
                 error!("Request is not supported by the Storm interface");
                 return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg));

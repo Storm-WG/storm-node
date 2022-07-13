@@ -83,10 +83,15 @@ pub enum ExtMsg {
     #[display("container_announcement({0})")]
     ContainerAnnouncement(AddressedMsg<ContainerInfo>),
 
-    /// A received container announcement
+    /// Command from an extension to the main daemon to retrieve container from the remote peer
     #[api(type = 0x0012)]
-    #[display("container_announcement({0})")]
+    #[display("retrieve_container({0})")]
     RetrieveContainer(AddressedMsg<ContainerFullId>),
+
+    /// Command from an extension to the main daemon to send container to the remote peer
+    #[api(type = 0x0014)]
+    #[display("send_container({0})")]
+    SendContainer(AddressedMsg<ContainerFullId>),
 
     /// Command to the storm node to decline the topic or a message with a specific id coming from
     /// certain peer.
@@ -128,6 +133,9 @@ impl StormExtMsg for p2p::Messages {
             p2p::Messages::AnnounceContainer(AppMsg { data, app }) => {
                 (app, ExtMsg::ContainerAnnouncement(AddressedMsg { remote_id, data }))
             }
+            p2p::Messages::PullContainer(AppMsg { data, app }) => {
+                (app, ExtMsg::RetrieveContainer(AddressedMsg { remote_id, data }))
+            }
             p2p::Messages::Decline(AppMsg { data, app }) => {
                 (app, ExtMsg::Decline(AddressedMsg { remote_id, data }))
             }
@@ -152,6 +160,7 @@ impl ExtMsg {
             | ExtMsg::Read(AddressedMsg { remote_id, .. })
             | ExtMsg::ContainerAnnouncement(AddressedMsg { remote_id, .. })
             | ExtMsg::RetrieveContainer(AddressedMsg { remote_id, .. })
+            | ExtMsg::SendContainer(AddressedMsg { remote_id, .. })
             | ExtMsg::Decline(AddressedMsg { remote_id, .. })
             | ExtMsg::Accept(AddressedMsg { remote_id, .. }) => *remote_id,
         }
@@ -182,6 +191,9 @@ impl ExtMsg {
             ExtMsg::ContainerAnnouncement(AddressedMsg { data, .. }) => {
                 p2p::Messages::AnnounceContainer(AppMsg { app, data })
             }
+            ExtMsg::SendContainer(AddressedMsg { .. }) => {
+                unreachable!("the task is handled by a dedicated daemon")
+            }
             ExtMsg::RetrieveContainer(AddressedMsg { .. }) => {
                 unreachable!("the task is handled by a dedicated daemon")
             }
@@ -201,6 +213,7 @@ impl ExtMsg {
             ExtMsg::Decline(AddressedMsg { data, .. }) => data.strict_serialize(),
             ExtMsg::Accept(AddressedMsg { data, .. }) => data.strict_serialize(),
             ExtMsg::ContainerAnnouncement(AddressedMsg { data, .. }) => data.strict_serialize(),
+            ExtMsg::SendContainer(AddressedMsg { data, .. }) => data.strict_serialize(),
             ExtMsg::RetrieveContainer(AddressedMsg { data, .. }) => data.strict_serialize(),
         }
         .expect("extension-generated message can't be serialized as a bifrost message payload")

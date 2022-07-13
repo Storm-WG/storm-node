@@ -8,14 +8,17 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
-use std::collections::VecDeque;
+use std::collections::BTreeSet;
 use std::fmt::Debug;
 
 use internet2::addr::NodeId;
 use microservices::esb::ClientId;
-use storm::{p2p, ChunkId, ContainerFullId, ContainerHeader, ContainerInfo, StormApp};
-use storm_rpc::DB_TABLE_CONTAINER_HEADERS;
-use strict_encoding::StrictDecode;
+use storm::p2p::ChunkPull;
+use storm::{
+    p2p, Chunk, ChunkId, Container, ContainerFullId, ContainerHeader, ContainerInfo, StormApp,
+};
+use storm_rpc::{RpcMsg, DB_TABLE_CHUNKS, DB_TABLE_CONTAINERS, DB_TABLE_CONTAINER_HEADERS};
+use strict_encoding::{StrictDecode, StrictEncode};
 
 use super::Runtime;
 use crate::bus::{Endpoints, Responder};
@@ -47,30 +50,41 @@ where R: Debug
 #[display(Debug)]
 pub enum ReceiveStateName {
     AwaitingContainer,
-    AwaitingChunk,
+    AwaitingChunks,
 }
 
 #[derive(Debug)]
 pub enum ReceiveState {
     AwaitingContainer {
-        client_id: Option<ClientId>,
-        remote_id: NodeId,
-        container_id: ContainerFullId,
+        info: Info,
     },
-    AwaitingChunk {
-        client_id: Option<ClientId>,
-        remote_id: NodeId,
-        container_id: ContainerFullId,
-        current: ChunkId,
-        other: VecDeque<ChunkId>,
+    AwaitingChunks {
+        info: Info,
+        total: usize,
+        pending: BTreeSet<ChunkId>,
     },
+}
+
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+pub struct Info {
+    pub app_id: StormApp,
+    pub client_id: Option<ClientId>,
+    pub remote_id: NodeId,
+    pub id: ContainerFullId,
 }
 
 impl ReceiveState {
     pub fn state_name(&self) -> ReceiveStateName {
         match self {
             ReceiveState::AwaitingContainer { .. } => ReceiveStateName::AwaitingContainer,
-            ReceiveState::AwaitingChunk { .. } => ReceiveStateName::AwaitingChunk,
+            ReceiveState::AwaitingChunks { .. } => ReceiveStateName::AwaitingChunks,
+        }
+    }
+
+    pub fn info(&self) -> Info {
+        match self {
+            ReceiveState::AwaitingContainer { info }
+            | ReceiveState::AwaitingChunks { info, .. } => *info,
         }
     }
 }
@@ -80,6 +94,13 @@ impl State {
         match self {
             State::Receive(recv) => StateName::Receive(recv.state_name()),
             State::Free => StateTy::Free,
+        }
+    }
+
+    pub fn info(&self) -> Option<Info> {
+        match self {
+            State::Free => None,
+            State::Receive(receive) => Some(receive.info()),
         }
     }
 
@@ -110,13 +131,13 @@ impl Runtime {
 
         // Switching the state
         self.state = State::Receive(ReceiveState::AwaitingContainer {
-            client_id,
-            remote_id,
-            container_id,
+            info: Info {
+                app_id: storm_app,
+                client_id,
+                remote_id,
+                id: container_id,
+            },
         });
-
-        // TODO: Ensure connectivity to the remote peer. This requires connection
-        //       to LNP RPC bus
 
         // Request the remote peer container data
         let msg = p2p::AppMsg {
@@ -126,16 +147,68 @@ impl Runtime {
         self.send_p2p_reporting_client(
             endpoints,
             client_id,
-            "Requesting container data",
+            Some("Requested container"),
             remote_id,
             p2p::Messages::PullContainer(msg),
         );
 
-        // Request all unknown chunks
         Ok(())
     }
 
-    pub(super) fn handle_send(
+    pub(super) fn handle_container(
+        &mut self,
+        endpoints: &mut Endpoints,
+        container: Container,
+    ) -> Result<(), DaemonError> {
+        self.state.require_state(StateName::Receive(ReceiveStateName::AwaitingContainer))?;
+        let info = self.state.info().expect("receive state always have metadata");
+
+        if let Some(client_id) = info.client_id {
+            self.send_rpc(endpoints, client_id, RpcMsg::Progress("Container received".into()))?;
+        }
+
+        let header_chunk = Chunk::try_from(container.header.strict_serialize()?)?;
+        let container_chunk = Chunk::try_from(container.strict_serialize()?)?;
+
+        let id = container.container_id();
+        self.store.store(DB_TABLE_CONTAINER_HEADERS, id, &header_chunk)?;
+        self.store.store(DB_TABLE_CONTAINERS, id, &container_chunk)?;
+
+        // Prepare list of missed chunks
+        let chunk_ids = self
+            .store
+            .filter_unknown(DB_TABLE_CHUNKS, container.chunks.iter().copied().collect())?;
+        let unknown_count = chunk_ids.len();
+        if let Some(client_id) = info.client_id {
+            self.send_rpc(
+                endpoints,
+                client_id,
+                RpcMsg::Progress(format!("Retrieving {} new chunks", unknown_count).into()),
+            )?;
+        }
+
+        self.send_p2p(
+            endpoints,
+            info.remote_id,
+            p2p::Messages::PullChunk(ChunkPull {
+                app: info.app_id,
+                message_id: info.id.message_id,
+                container_id: info.id.container_id,
+                chunk_ids: chunk_ids.clone(),
+            }),
+        )?;
+
+        // Switching the state
+        self.state = State::Receive(ReceiveState::AwaitingChunks {
+            info,
+            total: unknown_count,
+            pending: chunk_ids,
+        });
+
+        Ok(())
+    }
+
+    pub(super) fn handle_announce(
         &mut self,
         endpoints: &mut Endpoints,
         client_id: Option<ClientId>,
@@ -158,9 +231,39 @@ impl Runtime {
         self.send_p2p_reporting_client(
             endpoints,
             client_id,
-            "Sending container announcement",
+            Some("Sending container announcement"),
             remote_id,
             p2p::Messages::AnnounceContainer(msg),
+        );
+
+        Ok(())
+    }
+
+    pub(super) fn handle_send(
+        &mut self,
+        endpoints: &mut Endpoints,
+        client_id: Option<ClientId>,
+        storm_app: StormApp,
+        remote_id: NodeId,
+        id: ContainerFullId,
+    ) -> Result<(), DaemonError> {
+        self.state.require_state(StateName::Free)?;
+
+        let container_chunk = self
+            .store
+            .retrieve_chunk(DB_TABLE_CONTAINERS, id.container_id)?
+            .ok_or(DaemonError::UnknownContainer(id.container_id))?;
+        let container = Container::strict_deserialize(container_chunk)?;
+        let msg = p2p::AppMsg {
+            app: storm_app,
+            data: container,
+        };
+        self.send_p2p_reporting_client(
+            endpoints,
+            client_id,
+            Some("Sending container"),
+            remote_id,
+            p2p::Messages::PushContainer(msg),
         );
 
         Ok(())

@@ -13,11 +13,12 @@ use std::fmt::{self, Display, Formatter};
 use internet2::addr::NodeId;
 use microservices::esb::ClientId;
 use storm::p2p::AppMsg;
+use storm::Container;
 use storm_rpc::AppContainer;
 use strict_encoding::{StrictDecode, StrictEncode};
 
 /// RPC API requests over CTL message bus between RGB Node daemons.
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display, From)]
+#[derive(Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Display, From)]
 #[derive(NetworkEncode, NetworkDecode)]
 #[non_exhaustive]
 pub enum CtlMsg {
@@ -27,8 +28,14 @@ pub enum CtlMsg {
     #[display("get({0})")]
     GetContainer(AddressedClientMsg<AppContainer>),
 
+    #[display("announce({0})")]
+    AnnounceContainer(AddressedClientMsg<AppContainer>),
+
     #[display("send({0})")]
     SendContainer(AddressedClientMsg<AppContainer>),
+
+    #[display("process_container(...)")]
+    ProcessContainer(Container),
 
     #[display("processing_complete()")]
     ProcessingComplete,

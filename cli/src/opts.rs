@@ -109,7 +109,8 @@ pub enum Command {
     },
 
     /// Convert on-disk file into a container in the Store database.
-    FileContainerize {
+    #[display("containerize")]
+    Containerize {
         /// MIME file type
         #[clap(short, long, default_value = "application/octet-stream")]
         mime: AsciiString,
@@ -123,11 +124,40 @@ pub enum Command {
     },
 
     /// Assemble a file from a Store database-present container and save as a file.
-    FileAssemble {
+    #[display("assemble")]
+    Assemble {
         /// ID of the container to assemble into a file.
         container_id: ContainerId,
 
         /// Path and filename to save the file.
         path: PathBuf,
+    },
+
+    /// Upload given container to the remote peer
+    #[display("upload")]
+    Upload {
+        /// Remote node address to force connection (re)establishment
+        #[clap(long)]
+        connect: Option<PartialSocketAddr>,
+
+        /// Remote node id (public key).
+        peer: NodeId,
+
+        /// Container to send
+        container_id: ContainerId,
+    },
+
+    /// Download the container from the remote peer
+    #[display("download")]
+    Download {
+        /// Remote node address to force connection (re)establishment
+        #[clap(long)]
+        connect: Option<PartialSocketAddr>,
+
+        /// Remote node id (public key).
+        peer: NodeId,
+
+        /// Container to send
+        container_id: ContainerId,
     },
 }

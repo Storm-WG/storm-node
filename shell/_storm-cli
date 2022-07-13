@@ -71,7 +71,7 @@ _arguments "${_arguments_options[@]}" \
 ':peer -- Remote node id (public key):' \
 && ret=0
 ;;
-(file-containerize)
+(containerize)
 _arguments "${_arguments_options[@]}" \
 '-m+[MIME file type]:MIME: ' \
 '--mime=[MIME file type]:MIME: ' \
@@ -90,7 +90,7 @@ _arguments "${_arguments_options[@]}" \
 '::info -- Information about the container:' \
 && ret=0
 ;;
-(file-assemble)
+(assemble)
 _arguments "${_arguments_options[@]}" \
 '-S+[ZMQ socket for connecting Storm node RPC interface]:STORM_ENDPOINT: ' \
 '--storm=[ZMQ socket for connecting Storm node RPC interface]:STORM_ENDPOINT: ' \
@@ -105,6 +105,42 @@ _arguments "${_arguments_options[@]}" \
 '*--verbose[Set verbosity level]' \
 ':container-id -- ID of the container to assemble into a file:' \
 ':path -- Path and filename to save the file:' \
+&& ret=0
+;;
+(upload)
+_arguments "${_arguments_options[@]}" \
+'--connect=[Remote node address to force connection (re)establishment]:CONNECT: ' \
+'-S+[ZMQ socket for connecting Storm node RPC interface]:STORM_ENDPOINT: ' \
+'--storm=[ZMQ socket for connecting Storm node RPC interface]:STORM_ENDPOINT: ' \
+'--store=[ZMQ socket for connecting storage daemon]:STORE_ENDPOINT: ' \
+'-C+[ZMQ socket for chat daemon PUB/SUB API]:RADIO_ENDPOINT: ' \
+'--chat=[ZMQ socket for chat daemon PUB/SUB API]:RADIO_ENDPOINT: ' \
+'-L+[ZMQ socket for connecting LNP node RPC interface]:LNP_ENDPOINT: ' \
+'--lnp=[ZMQ socket for connecting LNP node RPC interface]:LNP_ENDPOINT: ' \
+'-h[Print help information]' \
+'--help[Print help information]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+':peer -- Remote node id (public key):' \
+':container-id -- Container to send:' \
+&& ret=0
+;;
+(download)
+_arguments "${_arguments_options[@]}" \
+'--connect=[Remote node address to force connection (re)establishment]:CONNECT: ' \
+'-S+[ZMQ socket for connecting Storm node RPC interface]:STORM_ENDPOINT: ' \
+'--storm=[ZMQ socket for connecting Storm node RPC interface]:STORM_ENDPOINT: ' \
+'--store=[ZMQ socket for connecting storage daemon]:STORE_ENDPOINT: ' \
+'-C+[ZMQ socket for chat daemon PUB/SUB API]:RADIO_ENDPOINT: ' \
+'--chat=[ZMQ socket for chat daemon PUB/SUB API]:RADIO_ENDPOINT: ' \
+'-L+[ZMQ socket for connecting LNP node RPC interface]:LNP_ENDPOINT: ' \
+'--lnp=[ZMQ socket for connecting LNP node RPC interface]:LNP_ENDPOINT: ' \
+'-h[Print help information]' \
+'--help[Print help information]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+':peer -- Remote node id (public key):' \
+':container-id -- Container to send:' \
 && ret=0
 ;;
 (help)
@@ -131,11 +167,18 @@ _storm-cli_commands() {
     local commands; commands=(
 'chat-listen:Listen for the incoming chat messages from a remote peer' \
 'chat-send:Send typed-in messages to another peer' \
-'file-containerize:Convert on-disk file into a container in the Store database' \
-'file-assemble:Assemble a file from a Store database-present container and save as a file' \
+'containerize:Convert on-disk file into a container in the Store database' \
+'assemble:Assemble a file from a Store database-present container and save as a file' \
+'upload:Upload given container to the remote peer' \
+'download:Download the container from the remote peer' \
 'help:Print this message or the help of the given subcommand(s)' \
     )
     _describe -t commands 'storm-cli commands' commands "$@"
+}
+(( $+functions[_storm-cli__assemble_commands] )) ||
+_storm-cli__assemble_commands() {
+    local commands; commands=()
+    _describe -t commands 'storm-cli assemble commands' commands "$@"
 }
 (( $+functions[_storm-cli__chat-listen_commands] )) ||
 _storm-cli__chat-listen_commands() {
@@ -147,20 +190,25 @@ _storm-cli__chat-send_commands() {
     local commands; commands=()
     _describe -t commands 'storm-cli chat-send commands' commands "$@"
 }
-(( $+functions[_storm-cli__file-assemble_commands] )) ||
-_storm-cli__file-assemble_commands() {
+(( $+functions[_storm-cli__containerize_commands] )) ||
+_storm-cli__containerize_commands() {
     local commands; commands=()
-    _describe -t commands 'storm-cli file-assemble commands' commands "$@"
+    _describe -t commands 'storm-cli containerize commands' commands "$@"
 }
-(( $+functions[_storm-cli__file-containerize_commands] )) ||
-_storm-cli__file-containerize_commands() {
+(( $+functions[_storm-cli__download_commands] )) ||
+_storm-cli__download_commands() {
     local commands; commands=()
-    _describe -t commands 'storm-cli file-containerize commands' commands "$@"
+    _describe -t commands 'storm-cli download commands' commands "$@"
 }
 (( $+functions[_storm-cli__help_commands] )) ||
 _storm-cli__help_commands() {
     local commands; commands=()
     _describe -t commands 'storm-cli help commands' commands "$@"
+}
+(( $+functions[_storm-cli__upload_commands] )) ||
+_storm-cli__upload_commands() {
+    local commands; commands=()
+    _describe -t commands 'storm-cli upload commands' commands "$@"
 }
 
 _storm-cli "$@"
