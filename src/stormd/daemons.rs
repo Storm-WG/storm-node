@@ -14,7 +14,7 @@ use microservices::error::BootstrapError;
 use microservices::{DaemonHandle, Launcher, LauncherError};
 
 use super::Runtime;
-use crate::{chatd, downpourd, transferd, Config, LaunchError};
+use crate::{chatd, downpourd, stormd, transferd, LaunchError};
 
 /// Daemons that can be launched by lnpd
 #[derive(Clone, Eq, PartialEq, Debug, Display)]
@@ -31,7 +31,7 @@ pub enum Daemon {
 
 impl Launcher for Daemon {
     type RunError = BootstrapError<LaunchError>;
-    type Config = Config;
+    type Config = crate::Config;
 
     fn bin_name(&self) -> &'static str {
         match self {
@@ -42,16 +42,14 @@ impl Launcher for Daemon {
     }
 
     fn cmd_args(&self, cmd: &mut Command) -> Result<(), LauncherError<Self>> {
-        cmd.args(
-            std::env::args()
-                .skip(1)
-                .filter(|arg| !["--chat", "--downpour"].iter().any(|pat| arg.starts_with(pat))),
-        );
+        cmd.args(std::env::args().skip(1).filter(|arg| {
+            !["--threaded", "--chat", "--downpour"].iter().any(|pat| arg.starts_with(pat))
+        }));
 
         Ok(())
     }
 
-    fn run_impl(self, config: Config) -> Result<(), Self::RunError> {
+    fn run_impl(self, config: crate::Config) -> Result<(), Self::RunError> {
         match self {
             Daemon::Transferd => transferd::run(config),
             Daemon::Chatd => chatd::run(config),
@@ -64,10 +62,10 @@ impl Runtime {
     pub(super) fn launch_daemon(
         &self,
         daemon: Daemon,
-        config: Config,
+        config: crate::Config<stormd::Config>,
     ) -> Result<DaemonHandle<Daemon>, LauncherError<Daemon>> {
-        if self.config.threaded {
-            daemon.thread_daemon(config)
+        if self.config.ext.threaded {
+            daemon.thread_daemon(config.into())
         } else {
             daemon.exec_daemon()
         }

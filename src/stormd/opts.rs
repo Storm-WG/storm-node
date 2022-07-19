@@ -28,6 +28,10 @@ pub struct Opts {
     /// Run downpour (torrent-like) service.
     #[clap(long)]
     pub downpour: bool,
+
+    /// Spawn daemons as threads and not processes
+    #[clap(short = 'T', long = "threaded")]
+    pub threaded_daemons: bool,
 }
 
 impl Opts {

@@ -37,10 +37,10 @@ _stormd() {
 '--version[Print version information]' \
 '*-v[Set verbosity level]' \
 '*--verbose[Set verbosity level]' \
-'-T[Spawn daemons as threads and not processes]' \
-'--threaded[Spawn daemons as threads and not processes]' \
 '--chat[Run chat service]' \
 '--downpour[Run downpour (torrent-like) service]' \
+'-T[Spawn daemons as threads and not processes]' \
+'--threaded[Spawn daemons as threads and not processes]' \
 && ret=0
 }
 

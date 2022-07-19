@@ -44,9 +44,6 @@ where Ext: Clone + Eq + Debug
     /// ZMQ socket for chat daemon PUB/SUB API.
     pub chat_endpoint: ServiceAddr,
 
-    /// Indicates whether deamons should be spawned as threads (true) or as child processes (false)
-    pub threaded: bool,
-
     /// Daemon-specific config extensions
     pub ext: Ext,
 }
@@ -64,7 +61,6 @@ where Ext: Clone + Eq + Debug
             ctl_endpoint: orig.ctl_endpoint,
             store_endpoint: orig.store_endpoint,
             chat_endpoint: orig.chat_endpoint,
-            threaded: orig.threaded,
             ext,
         }
     }
@@ -79,11 +75,6 @@ where
     fn from(opt: Opt) -> Self {
         let opts = opt.shared();
 
-        let ctl_endpoint = match opts.threaded_daemons {
-            true => ServiceAddr::Inproc(s!("lnp-ctl")),
-            false => opts.ctl_endpoint.clone(),
-        };
-
         Config {
             data_dir: opts.data_dir.clone(),
             rpc_endpoint: opts.rpc_endpoint.clone(),
@@ -91,8 +82,7 @@ where
             ext_endpoint: opts.ext_endpoint.clone(),
             store_endpoint: opts.store_endpoint.clone(),
             chat_endpoint: opts.chat_endpoint.clone(),
-            ctl_endpoint,
-            threaded: opts.threaded_daemons,
+            ctl_endpoint: opts.ctl_endpoint.clone(),
             ext: opt.config(),
         }
     }

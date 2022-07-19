@@ -166,10 +166,6 @@ pub struct Opts {
         default_value = CHATD_RPC_ENDPOINT,
     )]
     pub chat_endpoint: ServiceAddr,
-
-    /// Spawn daemons as threads and not processes
-    #[clap(short = 'T', long = "threaded")]
-    pub threaded_daemons: bool,
 }
 
 impl Opts {

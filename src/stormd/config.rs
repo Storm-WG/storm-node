@@ -15,6 +15,8 @@ use crate::opts::Options;
 pub struct Config {
     pub run_chat: bool,
     pub run_downpour: bool,
+    /// Indicates whether deamons should be spawned as threads (true) or as child processes (false)
+    pub threaded: bool,
 }
 
 impl Options for Opts {
@@ -26,6 +28,7 @@ impl Options for Opts {
         Config {
             run_chat: self.chat,
             run_downpour: self.downpour,
+            threaded: self.threaded_daemons,
         }
     }
 }
@@ -40,7 +43,6 @@ impl From<crate::Config<Config>> for crate::Config<()> {
             ext_endpoint: config.ext_endpoint,
             store_endpoint: config.store_endpoint,
             chat_endpoint: config.chat_endpoint,
-            threaded: config.threaded,
             ext: (),
         }
     }

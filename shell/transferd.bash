@@ -19,7 +19,7 @@ _transferd() {
 
     case "${cmd}" in
         transferd)
-            opts="-h -V -v -d -c -M -X -R -E -S -C -T --help --version --verbose --data-dir --config --msg --ctl --rpc-endpoint --ext-endpoint --store-endpoint --chat-endpoint --threaded"
+            opts="-h -V -v -d -c -M -X -R -E -S -C --help --version --verbose --data-dir --config --msg --ctl --rpc-endpoint --ext-endpoint --store-endpoint --chat-endpoint"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0

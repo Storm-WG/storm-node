@@ -122,13 +122,11 @@ impl esb::Handler<ServiceBus> for Runtime {
     fn on_ready(&mut self, _senders: &mut Endpoints) -> Result<(), Self::Error> {
         if self.config.ext.run_chat {
             info!("Starting chat daemon...");
-            let config = Config::with(self.config.clone(), ());
-            self.launch_daemon(Daemon::Chatd, config)?;
+            self.launch_daemon(Daemon::Chatd, self.config.clone())?;
         }
         if self.config.ext.run_downpour {
             info!("Starting downpour daemon...");
-            let config = Config::with(self.config.clone(), ());
-            self.launch_daemon(Daemon::Downpourd, config)?;
+            self.launch_daemon(Daemon::Downpourd, self.config.clone())?;
         }
         Ok(())
     }
