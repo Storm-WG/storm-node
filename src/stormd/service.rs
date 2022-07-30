@@ -82,6 +82,8 @@ pub struct Runtime {
 
     pub(crate) transferd_free: VecDeque<DaemonId>,
     pub(crate) transferd_busy: HashSet<DaemonId>,
+    /// Tracks known apps which must be notified on complete container downloads
+    pub(crate) container_apps: HashMap<ContainerId, StormApp>,
     pub(crate) container_transfers: HashMap<ContainerId, DaemonId>,
     pub(crate) ctl_queue: VecDeque<CtlMsg>,
 }
@@ -105,6 +107,7 @@ impl Runtime {
             registered_apps: empty!(),
             transferd_free: empty!(),
             transferd_busy: empty!(),
+            container_apps: empty!(),
             container_transfers: empty!(),
             ctl_queue: empty!(),
         })
@@ -305,14 +308,22 @@ impl Runtime {
 
             CtlMsg::ProcessingFailed | CtlMsg::ProcessingComplete => {
                 if let ServiceId::Transfer(daemon_id) = source {
-                    if let Some(pos) = self
+                    if let Some(container_id) = self
                         .container_transfers
                         .iter()
                         .find(|(_, id)| daemon_id == **id)
                         .map(|(a, _)| a)
                         .copied()
                     {
-                        self.container_transfers.remove(&pos);
+                        self.container_transfers.remove(&container_id);
+                        if let Some(app) = self.container_apps.get(&container_id) {
+                            // Notify client on complete process
+                            let _ = self.send_ext(
+                                endpoints,
+                                Some(*app),
+                                ExtMsg::ContainerRetrieved(container_id),
+                            );
+                        }
                     }
                     self.transferd_busy.remove(&daemon_id);
                     self.transferd_free.push_back(daemon_id);
@@ -356,6 +367,7 @@ impl Runtime {
             }
 
             ExtMsg::RetrieveContainer(container) => {
+                self.container_apps.insert(container.data.container_id, app);
                 self.ctl_queue.push_back(CtlMsg::GetContainer(AddressedClientMsg {
                     remote_id: container.remote_id,
                     client_id: None,

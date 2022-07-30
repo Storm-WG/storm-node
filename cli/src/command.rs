@@ -75,6 +75,7 @@ impl Opts {
                 }
             }
             Command::Containerize { mime, path, info } => {
+                // TODO: Make this procedure part of Storm Core (containerization of arbitrary vec)
                 let data = fs::read(path)?;
                 let mut chunk_ids = MediumVec::new();
                 let size = data.len() as u64;

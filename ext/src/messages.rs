@@ -13,7 +13,7 @@ use std::collections::BTreeSet;
 use internet2::addr::NodeId;
 use microservices::rpc;
 use storm::p2p::{self, AppMsg};
-use storm::{ContainerFullId, ContainerInfo, Mesg, MesgId, StormApp, Topic};
+use storm::{ContainerFullId, ContainerId, ContainerInfo, Mesg, MesgId, StormApp, Topic};
 use storm_rpc::AddressedMsg;
 use strict_encoding::StrictEncode;
 
@@ -82,6 +82,11 @@ pub enum ExtMsg {
     #[api(type = 0x0011)]
     #[display("container_announcement({0})")]
     ContainerAnnouncement(AddressedMsg<ContainerInfo>),
+
+    /// Notification about complete container download
+    #[api(type = 0x0013)]
+    #[display("container_retrieved({0})")]
+    ContainerRetrieved(ContainerId),
 
     /// Command from an extension to the main daemon to retrieve container from the remote peer
     #[api(type = 0x0012)]
@@ -153,6 +158,9 @@ impl ExtMsg {
             ExtMsg::RegisterApp(_) => {
                 unreachable!("ExtMsg::remote_id must not be called on ExtMsg::RegisterApp")
             }
+            ExtMsg::ContainerRetrieved(_) => {
+                unreachable!("ExtMsg::remote_id must not be called on ExtMsg::ContainerRetrieved")
+            }
             ExtMsg::ListTopics(AddressedMsg { remote_id, .. })
             | ExtMsg::Topics(AddressedMsg { remote_id, .. })
             | ExtMsg::ProposeTopic(AddressedMsg { remote_id, .. })
@@ -191,19 +199,19 @@ impl ExtMsg {
             ExtMsg::ContainerAnnouncement(AddressedMsg { data, .. }) => {
                 p2p::Messages::AnnounceContainer(AppMsg { app, data })
             }
-            ExtMsg::SendContainer(AddressedMsg { .. }) => {
-                unreachable!("the task is handled by a dedicated daemon")
-            }
-            ExtMsg::RetrieveContainer(AddressedMsg { .. }) => {
+            ExtMsg::SendContainer(_)
+            | ExtMsg::RetrieveContainer(_)
+            | ExtMsg::ContainerRetrieved(_) => {
                 unreachable!("the task is handled by a dedicated daemon")
             }
         }
     }
 
+    // TODO: Seemingly unused method, consider removing
     pub fn to_payload(&self) -> Vec<u8> {
         match self {
             ExtMsg::RegisterApp(_) => {
-                unreachable!("ExtMsg::remote_id must not be called on ExtMsg::RegisterApp")
+                unreachable!("ExtMsg::to_payload must not be called on ExtMsg::RegisterApp")
             }
             ExtMsg::ListTopics(AddressedMsg { data, .. }) => data.strict_serialize(),
             ExtMsg::Topics(AddressedMsg { data, .. }) => data.strict_serialize(),
@@ -215,6 +223,7 @@ impl ExtMsg {
             ExtMsg::ContainerAnnouncement(AddressedMsg { data, .. }) => data.strict_serialize(),
             ExtMsg::SendContainer(AddressedMsg { data, .. }) => data.strict_serialize(),
             ExtMsg::RetrieveContainer(AddressedMsg { data, .. }) => data.strict_serialize(),
+            ExtMsg::ContainerRetrieved(container_id) => container_id.strict_serialize(),
         }
         .expect("extension-generated message can't be serialized as a bifrost message payload")
     }
