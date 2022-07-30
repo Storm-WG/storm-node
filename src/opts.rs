@@ -13,7 +13,6 @@ use std::path::PathBuf;
 
 use clap::{Parser, ValueHint};
 use internet2::addr::ServiceAddr;
-use microservices::shell::shell_setup;
 use store_rpc::STORED_RPC_ENDPOINT;
 use storm_ext::{STORM_NODE_DATA_DIR, STORM_NODE_EXT_ENDPOINT};
 use storm_rpc::{CHATD_RPC_ENDPOINT, STORM_NODE_RPC_ENDPOINT};
@@ -168,9 +167,10 @@ pub struct Opts {
     pub chat_endpoint: ServiceAddr,
 }
 
+#[cfg(feature = "server")]
 impl Opts {
     pub fn process(&mut self) {
-        shell_setup(
+        microservices::shell::shell_setup(
             self.verbose,
             [
                 &mut self.msg_endpoint,

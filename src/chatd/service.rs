@@ -155,7 +155,7 @@ impl Runtime {
     fn handle_rpc(
         &mut self,
         endpoints: &mut Endpoints,
-        client_id: ClientId,
+        _client_id: ClientId,
         message: RpcMsg,
     ) -> Result<(), DaemonError> {
         match message {

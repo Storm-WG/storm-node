@@ -31,6 +31,10 @@ required-features = ["server"]
 name = "transferd"
 required-features = ["server"]
 
+[[bin]]
+name = "downpourd"
+required-features = ["server"]
+
 [dependencies]
 # LNP/BP crates
 amplify = "3.12.1"

@@ -8,7 +8,9 @@
 // You should have received a copy of the MIT License along with this software.
 // If not, see <https://opensource.org/licenses/MIT>.
 
+#[cfg(feature = "server")]
 use super::Opts;
+#[cfg(feature = "server")]
 use crate::opts::Options;
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
@@ -19,6 +21,7 @@ pub struct Config {
     pub threaded: bool,
 }
 
+#[cfg(feature = "server")]
 impl Options for Opts {
     type Conf = Config;
 

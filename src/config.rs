@@ -13,6 +13,7 @@ use std::path::PathBuf;
 
 use internet2::addr::ServiceAddr;
 
+#[cfg(feature = "server")]
 use crate::opts::Options;
 
 /// Final configuration resulting from data contained in config file environment

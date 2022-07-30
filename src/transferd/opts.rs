@@ -31,6 +31,7 @@ impl Options for Opts {
     fn config(&self) -> Self::Conf { () }
 }
 
+#[cfg(feature = "server")]
 impl Opts {
     pub fn process(&mut self) { self.shared.process(); }
 }

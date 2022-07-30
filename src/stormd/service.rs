@@ -78,6 +78,9 @@ pub struct Runtime {
     pub(super) config: Config<super::Config>,
     pub(super) registered_apps: BTreeSet<StormApp>,
 
+    // We use store connection on bootstrap to initialize tables; we maintain it after even thought
+    // we do not use it
+    #[allow(dead_code)]
     pub(crate) store: store_rpc::Client,
 
     pub(crate) transferd_free: VecDeque<DaemonId>,
@@ -192,15 +195,18 @@ impl Runtime {
             ) {
                 debug!("Processing container transfer request {}", mesg);
 
-                // TODO: Ensure that the incoming chunks references correct app id and message id
                 let (container_id, instr) = match mesg {
                     // These should be processed by transfer service
-                    Messages::PushContainer(AppMsg { app, data }) => {
+                    // TODO: Ensure that the incoming chunks references correct app id and message
+                    // id
+                    Messages::PushContainer(AppMsg { app: _, data }) => {
                         (data.container_id(), CtlMsg::ProcessContainer(data))
                     }
+                    // TODO: Ensure that the incoming chunks references correct app id and message
+                    // id
                     Messages::PullChunk(ChunkPull {
                         app,
-                        message_id,
+                        message_id: _,
                         container_id,
                         chunk_ids,
                     }) => (
@@ -214,10 +220,11 @@ impl Runtime {
                             },
                         }),
                     ),
+                    // TODO: Ensure that the incoming chunks references correct app id and chunk id
                     Messages::PushChunk(ChunkPush {
-                        app,
+                        app: _,
                         container_id,
-                        chunk_id,
+                        chunk_id: _,
                         chunk,
                     }) => (container_id, CtlMsg::ProcessChunk(chunk)),
                     _ => unreachable!(),
