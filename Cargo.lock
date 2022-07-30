@@ -236,9 +236,9 @@ checksum = "8d696c370c750c948ada61c69a0ee2cbbb9c50b1019ddb86d9317157a99c2cae"
 
 [[package]]
 name = "bp-core"
-version = "0.8.0-rc.1"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b37606d0f9b2c13cc1ac5bf81dbe4dc57479edc86d891be62235ca415b21600b"
+checksum = "a21c38adb69d890aa90c175240e3f5b1784cf6626486e7fd5138e3e6f6168101"
 dependencies = [
  "amplify",
  "bitcoin",
@@ -251,9 +251,9 @@ dependencies = [
 
 [[package]]
 name = "bp-dbc"
-version = "0.8.0-rc.1"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12cad35fd1f038ab75f078b3d51a005162905fe0f915b3efd14eb89a5c26dae5"
+checksum = "2b579033858923b066ad644f2628f20472694723e3aad6da1f678c9e9ff029db"
 dependencies = [
  "amplify",
  "bitcoin",
@@ -265,9 +265,9 @@ dependencies = [
 
 [[package]]
 name = "bp-seals"
-version = "0.8.0-rc.1"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c06a238a7121b96522c327148e26d176e87ef0f10e5d9ad09945df9bb3c44d6"
+checksum = "014b7cddf7739a960b504db916041e7605ee60aa56c885673948c55b634bdc96"
 dependencies = [
  "amplify",
  "bitcoin",
@@ -1156,9 +1156,9 @@ checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
 
 [[package]]
 name = "lnp-core"
-version = "0.8.0-beta.2"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d3b7da4f3057b8e11a8464f4cf9ad601d48eb65a0c488c9e56c5e93fe7cc65b"
+checksum = "d8f1f4c14c6b4d0a2039a81dc558c96f9cbda040023e0ee6c6a275f68629358c"
 dependencies = [
  "amplify",
  "bitcoin",
@@ -1175,9 +1175,9 @@ dependencies = [
 
 [[package]]
 name = "lnp2p"
-version = "0.8.0-beta.6"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddd42c74043d3b457331cbc6d1cc98f17d25da8a9ef1961ffa439416426b2940"
+checksum = "314350443009c2257a51cb1890c3eaf00efb124cc6764eca70090be427f841d4"
 dependencies = [
  "amplify",
  "bitcoin",
@@ -1198,31 +1198,9 @@ dependencies = [
 
 [[package]]
 name = "lnp_rpc"
-version = "0.8.0-rc.1"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d2eccecd7769dbad344182f6fa293568957c0f6d803b1363e15fc26db39f6e3"
-dependencies = [
- "amplify",
- "bitcoin",
- "colored",
- "descriptor-wallet",
- "internet2",
- "lightning-invoice",
- "lnp-core",
- "lnpbp",
- "log",
- "microservices",
- "serde 1.0.139",
- "serde_with",
- "serde_yaml",
- "strict_encoding",
- "zmq2",
-]
-
-[[package]]
-name = "lnp_rpc"
-version = "0.8.0-rc.1"
-source = "git+https://github.com/LNP-WG/lnp-node#46cf206f464e5e1d71cd1f18a4772dd921141b77"
+checksum = "f39eccd18dddb45e3a947f2e0fa0b92a8aaf8be1ac0f39284f4f987e68815db4"
 dependencies = [
  "amplify",
  "bitcoin",
@@ -2055,9 +2033,9 @@ dependencies = [
 
 [[package]]
 name = "store_rpc"
-version = "0.8.0-rc.5"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16f35e11387b81a05f80161ab876088274c5b859e314ddaf461e979befc3d0a3"
+checksum = "3f72f900eadc810e0e00cddc633590e93bda23d1e219ca82c6f98fe163e46427"
 dependencies = [
  "amplify",
  "colored",
@@ -2075,7 +2053,7 @@ dependencies = [
 
 [[package]]
 name = "storm-cli"
-version = "0.8.0-beta.1"
+version = "0.8.0-rc.1"
 dependencies = [
  "amplify",
  "clap",
@@ -2084,7 +2062,7 @@ dependencies = [
  "configure_me_codegen",
  "internet2",
  "lnp-core",
- "lnp_rpc 0.8.0-rc.1 (git+https://github.com/LNP-WG/lnp-node)",
+ "lnp_rpc",
  "log",
  "microservices",
  "shellexpand",
@@ -2097,9 +2075,9 @@ dependencies = [
 
 [[package]]
 name = "storm-core"
-version = "0.8.0-beta.4"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f748a74164692335f05d129feaada75d54d605d42bab542fdc732078cea86e24"
+checksum = "f8c86eb19d8639c31589447f2a7c3488b51b9b4ff254286ab6705bf348abb204"
 dependencies = [
  "amplify",
  "bitcoin_hashes",
@@ -2113,7 +2091,7 @@ dependencies = [
 
 [[package]]
 name = "storm_ext"
-version = "0.8.0-beta.1"
+version = "0.8.0-rc.1"
 dependencies = [
  "amplify",
  "const_format",
@@ -2131,7 +2109,7 @@ dependencies = [
 
 [[package]]
 name = "storm_node"
-version = "0.8.0-beta.1"
+version = "0.8.0-rc.1"
 dependencies = [
  "amplify",
  "chrono",
@@ -2146,7 +2124,7 @@ dependencies = [
  "env_logger",
  "internet2",
  "lnp2p",
- "lnp_rpc 0.8.0-rc.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lnp_rpc",
  "log",
  "microservices",
  "nix",
@@ -2161,7 +2139,7 @@ dependencies = [
 
 [[package]]
 name = "storm_rpc"
-version = "0.8.0-beta.1"
+version = "0.8.0-rc.1"
 dependencies = [
  "amplify",
  "internet2",
