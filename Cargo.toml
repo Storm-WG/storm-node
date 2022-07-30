@@ -5,7 +5,7 @@ members = [".", "rpc", "cli", "ext"]
 [package]
 name = "storm_node"
 description = "Storm node"
-version = "0.8.0-rc.1"
+version = "0.8.0"
 authors = ["Dr. Maxim Orlovsky <orlovsky@lnp-bp.org>"]
 license = "MIT"
 keywords = ["daemon", "microservice", "lightning-network", "lnp-bp", "storage"]
@@ -43,8 +43,8 @@ commit_verify = "0.8.0"
 internet2 = { version = "0.8.0", features = ["keygen", "zmq"] }
 microservices = { version = "0.8.7", default-features = false, features = ["node"] }
 storm-core = "0.8.0"
-storm_ext = { version = "0.8.0-rc.1", path = "ext" }
-storm_rpc = { version = "0.8.0-rc.1", path = "rpc" }
+storm_ext = { version = "0.8.0", path = "ext" }
+storm_rpc = { version = "0.8.0", path = "rpc" }
 store_rpc = "0.8.0"
 lnp2p = "0.8.0"
 lnp_rpc = "0.8.0"
@@ -65,8 +65,8 @@ shellexpand = { version = "2", optional = true }
 amplify = "3.12.1"
 internet2 = "0.8.0"
 microservices = { version = "0.8.0", default-features = false, features = ["node", "peer"] }
-storm_ext = { version = "0.8.0-rc.1", path = "ext" }
-storm_rpc = { version = "0.8.0-rc.1", path = "rpc" }
+storm_ext = { version = "0.8.0", path = "ext" }
+storm_rpc = { version = "0.8.0", path = "rpc" }
 store_rpc = "0.8.0"
 clap = { version = "~3.1.18", features = ["env", "derive"] }
 clap_complete = "~3.1.4"

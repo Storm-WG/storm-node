@@ -2053,7 +2053,7 @@ dependencies = [
 
 [[package]]
 name = "storm-cli"
-version = "0.8.0-rc.1"
+version = "0.8.0"
 dependencies = [
  "amplify",
  "clap",
@@ -2091,7 +2091,7 @@ dependencies = [
 
 [[package]]
 name = "storm_ext"
-version = "0.8.0-rc.1"
+version = "0.8.0"
 dependencies = [
  "amplify",
  "const_format",
@@ -2109,7 +2109,7 @@ dependencies = [
 
 [[package]]
 name = "storm_node"
-version = "0.8.0-rc.1"
+version = "0.8.0"
 dependencies = [
  "amplify",
  "chrono",
@@ -2139,7 +2139,7 @@ dependencies = [
 
 [[package]]
 name = "storm_rpc"
-version = "0.8.0-rc.1"
+version = "0.8.0"
 dependencies = [
  "amplify",
  "internet2",
