@@ -107,6 +107,7 @@ impl Opts {
                 println!("{}", id);
             }
             Command::Assemble { container_id, path } => {
+                // TODO: Make this procedure part of Storm Core (assembling data from a container)
                 let container_chunk = store_client
                     .retrieve_chunk(storm_rpc::DB_TABLE_CONTAINERS, container_id)?
                     .expect("No container with the provided id");
