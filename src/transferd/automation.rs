@@ -196,6 +196,14 @@ impl Runtime {
 
         debug!("Requesting {} chunks", chunk_ids.len());
         trace!("Requested chunk ids: {:?}", chunk_ids);
+
+        // Switching the state
+        self.state = State::Receive(ReceiveState::ReceivingChunks {
+            info,
+            total: unknown_count,
+            pending: chunk_ids.clone(),
+        });
+
         self.send_p2p(
             endpoints,
             info.remote_id,
@@ -206,13 +214,6 @@ impl Runtime {
                 chunk_ids: chunk_ids.clone(),
             }),
         )?;
-
-        // Switching the state
-        self.state = State::Receive(ReceiveState::ReceivingChunks {
-            info,
-            total: unknown_count,
-            pending: chunk_ids,
-        });
 
         Ok(())
     }
