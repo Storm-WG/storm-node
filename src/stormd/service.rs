@@ -17,8 +17,7 @@ use lnp2p::bifrost;
 use lnp2p::bifrost::{BifrostApp, Messages as LnMsg};
 use microservices::cli::LogStyle;
 use microservices::error::BootstrapError;
-use microservices::esb;
-use microservices::esb::{ClientId, EndpointList, Error};
+use microservices::esb::{self, ClientId, EndpointList, Error};
 use microservices::node::TryService;
 use storm::p2p::{AppMsg, ChunkPull, ChunkPush, Messages, STORM_P2P_UNMARSHALLER};
 use storm::{ContainerId, StormApp};
@@ -155,6 +154,9 @@ impl esb::Handler<ServiceBus> for Runtime {
             (ServiceBus::Rpc, BusMsg::Rpc(msg), ServiceId::Client(client_id)) => {
                 self.handle_rpc(endpoints, client_id, msg)
             }
+            (ServiceBus::Rpc, BusMsg::Storm(msg), other_source) => {
+                self.handle_others(endpoints, other_source, msg)
+            }
             (bus, msg, _) => Err(DaemonError::wrong_esb_msg(bus, &msg)),
         }
     }
@@ -232,6 +234,9 @@ impl Runtime {
 
                 if let Some(daemon_id) = self.container_transfers.get(&container_id) {
                     self.send_ctl(endpoints, ServiceId::Transfer(*daemon_id), instr)?;
+                } else if matches!(instr, CtlMsg::ProcessContainer(_)) {
+                    self.ctl_queue.push_back(instr);
+                    self.pick_or_start(endpoints, None)?;
                 } else if matches!(instr, CtlMsg::SendChunks(_)) {
                     self.ctl_queue.push_back(instr);
                     self.pick_or_start(endpoints, None)?;
@@ -401,6 +406,35 @@ impl Runtime {
             // We need to the rest of the messages to the Bifrost network
             forward => {
                 self.send_p2p(endpoints, forward.remote_id(), forward.p2p_message(app))?;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn handle_others(
+        &mut self,
+        endpoints: &mut Endpoints,
+        source: ServiceId,
+        message: ExtMsg,
+    ) -> Result<(), DaemonError> {
+        match message {
+            ExtMsg::ContainerAnnouncement(container) => {
+                info!("Receive a container announcement from {}", source);
+                self.ctl_queue.push_back(CtlMsg::AnnounceContainer(AddressedClientMsg {
+                    remote_id: container.remote_id,
+                    client_id: None,
+                    data: AppContainer {
+                        storm_app: StormApp::FileTransfer,
+                        container_id: container.data.id,
+                    },
+                }));
+                self.pick_or_start(endpoints, None)?;
+            }
+
+            wrong_msg => {
+                error!("Request is not supported by the RPC interface");
+                return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg));
             }
         }
 

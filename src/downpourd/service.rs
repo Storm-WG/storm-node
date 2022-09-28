@@ -145,6 +145,10 @@ impl Runtime {
                 )?;
             }
 
+            ExtMsg::ContainerRetrieved(_) => {
+                warn!("No active action is known for this message")
+            }
+
             wrong_msg => {
                 error!("Request is not supported by the Storm interface");
                 return Err(DaemonError::wrong_esb_msg(ServiceBus::Rpc, &wrong_msg));
