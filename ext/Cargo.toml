@@ -1,7 +1,7 @@
 [package]
 name = "storm_ext"
 description = "Storm node extension integration API"
-version = "0.8.0"
+version = "0.9.0-rc.1"
 authors = ["Dr. Maxim Orlovsky <orlovsky@lnp-bp.org>"]
 license = "MIT"
 keywords = ["daemon", "microservice", "lightning-network", "lnp-bp", "storage"]
@@ -14,15 +14,15 @@ readme = "../README.md"
 name = "storm_ext"
 
 [dependencies]
-amplify = "3.12.1"
-strict_encoding = "0.8.1"
-internet2 = "0.8.0"
-microservices = { version = "0.8.0", default-features = false, features = ["client"] }
-storm-core = "0.8.0"
-storm_rpc = { version = "0.8.0", path = "../rpc" }
+amplify = "3.13.0"
+strict_encoding = "0.9.0-rc.2"
+internet2 = "0.9.0-rc.1"
+microservices = { version = "0.9.0-rc.1", default-features = false, features = ["client"] }
+storm-core = "0.9.0-rc.1"
+storm_rpc = { version = "0.9.0-rc.1", path = "../rpc" }
 serde_crate = { package = "serde", version = "1", features = ["derive"], optional = true }
-serde_with = { version = "1.8", optional = true }
-serde_yaml = { version = "0.8.23", optional = true }
+serde_with = { version = "1.14", optional = true }
+serde_yaml = { version = "0.9.16", optional = true }
 const_format = "0.2.25"
 log = "0.4.14"
 once_cell = "1.12.0"
