@@ -27,7 +27,7 @@ store_rpc = "0.8.0"
 lnp-core = "0.8.0"
 lnp_rpc = "0.8.0"
 shellexpand = "2.1"
-clap = { version = "~3.1.18", features = ["derive", "env"] }
+clap = { version = "~3.2.23", features = ["derive", "env"] }
 log = "0.4.14"
 colored = "2"
 
@@ -39,6 +39,6 @@ storm_rpc = { version = "0.8.0", path = "../rpc" }
 store_rpc = "0.8.0"
 lnp_rpc = "0.8.0"
 internet2 = "0.8.0"
-clap = { version = "~3.1.18", features = ["derive", "env"] }
-clap_complete = "~3.1.4"
+clap = { version = "~3.2.23", features = ["derive", "env"] }
+clap_complete = "~3.2.5"
 configure_me_codegen = "0.4"
