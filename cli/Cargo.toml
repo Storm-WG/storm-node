@@ -1,7 +1,7 @@
 [package]
 name = "storm-cli"
 description = "Storm node command-line interface"
-version = "0.8.0"
+version = "0.8.1"
 authors = ["Dr. Maxim Orlovsky <orlovsky@lnp-bp.org>"]
 license = "MIT"
 keywords = ["daemon", "microservice", "lightning-network", "lnp-bp", "storage"]
