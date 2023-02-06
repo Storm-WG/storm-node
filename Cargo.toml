@@ -5,7 +5,7 @@ members = [".", "rpc", "cli", "ext"]
 [package]
 name = "storm_node"
 description = "Storm node"
-version = "0.9.0-rc.1"
+version = "0.9.0"
 authors = ["Dr. Maxim Orlovsky <orlovsky@lnp-bp.org>"]
 license = "MIT"
 keywords = ["daemon", "microservice", "lightning-network", "lnp-bp", "storage"]
@@ -39,15 +39,15 @@ required-features = ["server"]
 # LNP/BP crates
 amplify = "3.13.0"
 strict_encoding = "0.9.0-rc.2"
-commit_verify = "0.9.0-rc.1"
-internet2 = { version = "0.9.0-rc.1", features = ["keygen", "zmq"] }
-microservices = { version = "0.9.0-rc.1", default-features = false, features = ["node"] }
-storm-core = "0.9.0-rc.1"
-storm_ext = { version = "0.9.0-rc.1", path = "ext" }
-storm_rpc = { version = "0.9.0-rc.1", path = "rpc" }
-store_rpc = "0.9.0-rc.1"
-lnp2p = "0.9.0-rc.1"
-lnp_rpc = "0.9.0-rc.1"
+commit_verify = "0.9.0"
+internet2 = { version = "0.9.0", features = ["keygen", "zmq"] }
+microservices = { version = "0.9.0", default-features = false, features = ["node"] }
+storm-core = "0.9.0"
+storm_ext = { version = "0.9.0", path = "ext" }
+storm_rpc = { version = "0.9.0", path = "rpc" }
+store_rpc = "0.9.0"
+lnp2p = "0.9.0"
+lnp_rpc = "0.9.0"
 # OS
 rand = "0.8.5"
 chrono = "0.4"
@@ -63,11 +63,11 @@ shellexpand = { version = "2", optional = true }
 
 [build-dependencies]
 amplify = "3.13.0"
-internet2 = "0.9.0-rc.1"
-microservices = { version = "0.9.0-rc.1", default-features = false, features = ["node", "peer"] }
-storm_ext = { version = "0.9.0-rc.1", path = "ext" }
-storm_rpc = { version = "0.9.0-rc.1", path = "rpc" }
-store_rpc = "0.9.0-rc.1"
+internet2 = "0.9.0"
+microservices = { version = "0.9.0", default-features = false, features = ["node", "peer"] }
+storm_ext = { version = "0.9.0", path = "ext" }
+storm_rpc = { version = "0.9.0", path = "rpc" }
+store_rpc = "0.9.0"
 clap = { version = "~3.2.23", features = ["env", "derive"] }
 clap_complete = "~3.2.5"
 log = { version = "0.4", features = ["max_level_trace", "release_max_level_debug"] }
